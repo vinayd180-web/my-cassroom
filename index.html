@@ -1,0 +1,3726 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+    <title>A-Class Plus - Complete Virtual Classroom</title>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+    <style>
+        /* ============================================================
+                   COMPLETE STYLES - Professional Design
+                   ============================================================ */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: #0a0f0d;
+            color: #e8edec;
+            overflow: hidden;
+            height: 100vh;
+            display: flex;
+            user-select: none;
+        }
+
+        /* ============================================================
+                   ROLE SELECTOR - Login Screen
+                   ============================================================ */
+        #role-selector {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(8, 12, 10, 0.98);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 18px;
+            z-index: 999;
+            backdrop-filter: blur(20px);
+        }
+        #role-selector .logo {
+            font-size: 4.2rem;
+            margin-bottom: 2px;
+        }
+        #role-selector h1 {
+            font-size: 2.6rem;
+            font-weight: 300;
+            letter-spacing: 10px;
+            background: linear-gradient(135deg, #ffd700, #f5a623);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        #role-selector .subtitle {
+            color: #5a6a62;
+            font-size: 0.9rem;
+            font-weight: 300;
+            letter-spacing: 3px;
+        }
+        #role-selector .role-container {
+            display: flex;
+            gap: 28px;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-top: 14px;
+        }
+        #role-selector .role-box {
+            background: #0e1411;
+            border: 1px solid #1a241e;
+            border-radius: 18px;
+            padding: 26px 30px 30px 30px;
+            width: 280px;
+            transition: 0.4s;
+        }
+        #role-selector .role-box:hover {
+            transform: translateY(-3px);
+        }
+        #role-selector .role-box.teacher-box:hover {
+            border-color: #ffd700;
+            box-shadow: 0 0 50px rgba(255, 215, 0, 0.04);
+        }
+        #role-selector .role-box.student-box:hover {
+            border-color: #42a5f5;
+            box-shadow: 0 0 50px rgba(66, 165, 245, 0.04);
+        }
+        #role-selector .role-box .role-title {
+            font-size: 1.1rem;
+            font-weight: 500;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        #role-selector .role-box .role-title .icon {
+            font-size: 1.5rem;
+        }
+        #role-selector .role-box .role-title .teacher-color {
+            color: #ffd700;
+        }
+        #role-selector .role-box .role-title .student-color {
+            color: #42a5f5;
+        }
+        #role-selector .role-box .role-desc {
+            color: #5a6a62;
+            font-size: 0.75rem;
+            margin-bottom: 14px;
+            font-weight: 300;
+            line-height: 1.5;
+            letter-spacing: 0.3px;
+        }
+        #role-selector .role-box input {
+            width: 100%;
+            padding: 10px 16px;
+            border-radius: 30px;
+            border: 1px solid #1a241e;
+            background: #080c0a;
+            color: #e8edec;
+            font-size: 0.9rem;
+            outline: none;
+            transition: 0.3s;
+            font-weight: 300;
+        }
+        #role-selector .role-box input:focus {
+            border-color: #ffd700;
+        }
+        #role-selector .role-box input::placeholder {
+            color: #2a3a32;
+        }
+        #role-selector .role-box .login-btn {
+            width: 100%;
+            margin-top: 12px;
+            padding: 10px;
+            border-radius: 30px;
+            border: none;
+            font-weight: 500;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: 0.2s;
+            letter-spacing: 0.5px;
+        }
+        #role-selector .role-box .login-btn.teacher-btn {
+            background: linear-gradient(135deg, #ffd700, #f5a623);
+            color: #111;
+        }
+        #role-selector .role-box .login-btn.teacher-btn:hover {
+            transform: scale(1.02);
+            box-shadow: 0 0 30px rgba(255, 215, 0, 0.15);
+        }
+        #role-selector .role-box .login-btn.student-btn {
+            background: #1a2e3a;
+            color: #b0d4e8;
+            border: 1px solid #2a4a5a;
+        }
+        #role-selector .role-box .login-btn.student-btn:hover {
+            background: #1e3a4a;
+            transform: scale(1.02);
+        }
+        #role-selector .password-hint {
+            color: #3a4a42;
+            font-size: 0.7rem;
+            margin-top: 4px;
+            letter-spacing: 0.5px;
+        }
+        #error-msg {
+            color: #ff6b6b;
+            font-size: 0.85rem;
+            min-height: 20px;
+            text-align: center;
+            font-weight: 300;
+        }
+
+        /* ============================================================
+                   MAIN LAYOUT
+                   ============================================================ */
+        #app-container {
+            display: flex;
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+        }
+
+        /* ============================================================
+                   TAB BAR (Left Side)
+                   ============================================================ */
+        #tab-bar {
+            width: 60px;
+            height: 100vh;
+            background: #0e1411;
+            border-right: 1px solid #1a241e;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 12px 0;
+            gap: 4px;
+            z-index: 50;
+            flex-shrink: 0;
+            transition: all 0.3s ease;
+            overflow-y: auto;
+        }
+        #tab-bar.hidden {
+            width: 0;
+            padding: 0;
+            border: none;
+            overflow: hidden;
+        }
+        .tab-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            border: 1px solid transparent;
+            background: transparent;
+            color: #4a5a52;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+        .tab-btn:hover {
+            background: #1a241e;
+            color: #8a9a92;
+        }
+        .tab-btn.active {
+            border-color: #ffd700;
+            background: #1a241e;
+            color: #ffd700;
+        }
+        .tab-btn .badge {
+            position: absolute;
+            top: -2px;
+            right: -2px;
+            background: #ff6b6b;
+            color: #fff;
+            font-size: 7px;
+            padding: 2px 5px;
+            border-radius: 8px;
+            font-weight: 600;
+            min-width: 16px;
+            text-align: center;
+        }
+        .tab-btn .tooltip {
+            position: absolute;
+            left: 48px;
+            background: #121a16;
+            color: #8a9a92;
+            padding: 4px 12px;
+            border-radius: 6px;
+            font-size: 10px;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: 0.2s;
+            border: 1px solid #1a241e;
+            font-weight: 400;
+        }
+        .tab-btn:hover .tooltip {
+            opacity: 1;
+        }
+        .tab-spacer {
+            flex: 1;
+        }
+        .tab-btn.hide-tab {
+            margin-top: auto;
+            border-color: #1a241e;
+        }
+
+        /* ============================================================
+                   CONTENT AREA
+                   ============================================================ */
+        #content-area {
+            flex: 1;
+            height: 100vh;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* ============================================================
+                   TAB PANELS
+                   ============================================================ */
+        .tab-panel {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: none;
+            overflow: hidden;
+        }
+        .tab-panel.active {
+            display: flex;
+        }
+
+        /* ============================================================
+                   PANEL 1: WHITEBOARD
+                   ============================================================ */
+        #panel-whiteboard {
+            flex-direction: column;
+            background: #0f1612;
+        }
+        #whiteboard-toolbar {
+            min-height: 44px;
+            background: #121a16;
+            border-bottom: 1px solid #1a241e;
+            display: flex;
+            align-items: center;
+            padding: 0 12px;
+            gap: 4px;
+            flex-shrink: 0;
+            overflow-x: auto;
+            z-index: 10;
+            flex-wrap: nowrap;
+        }
+        #whiteboard-toolbar .tool-group {
+            display: flex;
+            gap: 2px;
+            align-items: center;
+            padding: 0 8px;
+            border-right: 1px solid #1a241e;
+            flex-shrink: 0;
+        }
+        #whiteboard-toolbar .tool-group:last-child {
+            border-right: none;
+        }
+        .wb-btn {
+            background: transparent;
+            border: 1px solid transparent;
+            color: #5a6a62;
+            padding: 4px 8px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 10px;
+            font-weight: 400;
+            transition: 0.15s;
+            display: flex;
+            align-items: center;
+            gap: 3px;
+            white-space: nowrap;
+            letter-spacing: 0.3px;
+        }
+        .wb-btn:hover {
+            background: #1a241e;
+            color: #8a9a92;
+        }
+        .wb-btn.active {
+            border-color: #ffd700;
+            color: #ffd700;
+            background: #1a241e;
+        }
+        .wb-btn .color-dot-sm {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            border: 2px solid transparent;
+            display: inline-block;
+        }
+        .wb-btn .color-dot-sm.selected {
+            border-color: #e8edec;
+        }
+        #whiteboard-container {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+            background: #1a2a22;
+            background-image: radial-gradient(#224d38 15%, transparent 20%);
+            background-size: 4px 4px;
+        }
+        #zoom-wrapper {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            transform-origin: 0 0;
+            pointer-events: none;
+            z-index: 5;
+        }
+        #media-layer {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        #media-layer img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            border-radius: 4px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
+        }
+        #drawing-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 10;
+            touch-action: none;
+            cursor: crosshair;
+        }
+
+        /* Math Tools Overlay */
+        #math-tools-overlay {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 15;
+            display: none;
+            gap: 6px;
+            background: rgba(10, 15, 13, 0.92);
+            padding: 8px 16px;
+            border-radius: 30px;
+            backdrop-filter: blur(12px);
+            border: 1px solid #1a241e;
+        }
+        #math-tools-overlay.show {
+            display: flex;
+        }
+        #math-tools-overlay button {
+            background: transparent;
+            border: 1px solid #1a241e;
+            color: #8a9a92;
+            padding: 5px 12px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: 0.2s;
+            font-weight: 400;
+        }
+        #math-tools-overlay button:hover {
+            background: #1a241e;
+            border-color: #ffd700;
+            color: #ffd700;
+        }
+
+        /* Shape Tools Overlay */
+        #shape-tools-overlay {
+            position: absolute;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 15;
+            display: none;
+            gap: 6px;
+            background: rgba(10, 15, 13, 0.92);
+            padding: 8px 16px;
+            border-radius: 30px;
+            backdrop-filter: blur(12px);
+            border: 1px solid #1a241e;
+        }
+        #shape-tools-overlay.show {
+            display: flex;
+        }
+        #shape-tools-overlay button {
+            background: transparent;
+            border: 1px solid #1a241e;
+            color: #8a9a92;
+            padding: 5px 12px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: 0.2s;
+        }
+        #shape-tools-overlay button:hover {
+            background: #1a241e;
+            border-color: #ffd700;
+            color: #ffd700;
+        }
+
+        /* ============================================================
+                   PANEL 2: STUDENTS
+                   ============================================================ */
+        #panel-students {
+            flex-direction: column;
+            background: #0a0f0d;
+            padding: 16px 20px;
+        }
+        #panel-students .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            flex-shrink: 0;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        #panel-students .panel-header h2 {
+            font-weight: 300;
+            color: #c8d4ce;
+            font-size: 1.1rem;
+            letter-spacing: 1px;
+        }
+        #panel-students .panel-header .header-actions {
+            display: flex;
+            gap: 6px;
+        }
+        #panel-students .panel-header .header-actions button {
+            background: #121a16;
+            border: 1px solid #1a241e;
+            color: #8a9a92;
+            padding: 4px 12px;
+            border-radius: 16px;
+            cursor: pointer;
+            font-size: 9px;
+            transition: 0.2s;
+        }
+        #panel-students .panel-header .header-actions button:hover {
+            border-color: #ffd700;
+            color: #ffd700;
+        }
+        #panel-students .panel-header .count {
+            background: #121a16;
+            color: #8a9a92;
+            padding: 4px 14px;
+            border-radius: 20px;
+            font-size: 11px;
+            border: 1px solid #1a241e;
+        }
+        #student-grid {
+            flex: 1;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+            gap: 10px;
+            overflow-y: auto;
+            padding: 4px;
+            align-content: start;
+        }
+        .student-card {
+            background: #121a16;
+            border: 1px solid #1a241e;
+            border-radius: 12px;
+            padding: 14px;
+            text-align: center;
+            transition: 0.2s;
+            aspect-ratio: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            min-height: 110px;
+            position: relative;
+        }
+        .student-card:hover {
+            border-color: #2a3a32;
+            background: #161e1a;
+        }
+        .student-card .avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #1a241e;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+        }
+        .student-card .name {
+            font-size: 10px;
+            color: #b0c0b8;
+            font-weight: 400;
+        }
+        .student-card .status {
+            font-size: 8px;
+            color: #5a6a62;
+            font-weight: 300;
+        }
+        .student-card .status.online {
+            color: #66bb6a;
+        }
+        .student-card .status.hand-raised {
+            color: #ffd700;
+        }
+        .student-card .status.absent {
+            color: #ff6b6b;
+        }
+        .student-card .student-badge {
+            position: absolute;
+            top: 4px;
+            right: 4px;
+            font-size: 8px;
+            background: #1a241e;
+            padding: 2px 6px;
+            border-radius: 8px;
+            color: #5a6a62;
+        }
+        .student-card .student-badge.teacher-badge {
+            color: #ffd700;
+            border: 1px solid #ffd700;
+        }
+
+        /* ============================================================
+                   PANEL 3: CHAT
+                   ============================================================ */
+        #panel-chat {
+            flex-direction: column;
+            background: #0a0f0d;
+        }
+        #chat-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 14px 18px 16px 18px;
+            gap: 10px;
+            height: 100%;
+        }
+        #chat-panel .chat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-shrink: 0;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+        #chat-panel .chat-header h2 {
+            font-weight: 300;
+            color: #c8d4ce;
+            font-size: 1.1rem;
+            letter-spacing: 1px;
+        }
+        #chat-panel .chat-header .chat-actions {
+            display: flex;
+            gap: 4px;
+        }
+        #chat-panel .chat-header .chat-actions button {
+            background: transparent;
+            border: 1px solid #1a241e;
+            color: #5a6a62;
+            padding: 2px 8px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 9px;
+            transition: 0.2s;
+        }
+        #chat-panel .chat-header .chat-actions button:hover {
+            border-color: #ffd700;
+            color: #ffd700;
+        }
+        #chat-panel .chat-header .chat-count {
+            color: #5a6a62;
+            font-size: 11px;
+            font-weight: 300;
+        }
+        #chat-messages-full {
+            flex: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            padding: 10px 12px;
+            background: #0e1411;
+            border-radius: 12px;
+            border: 1px solid #161e1a;
+            min-height: 180px;
+            max-height: calc(100vh - 180px);
+        }
+        #chat-messages-full .msg {
+            background: #161e1a;
+            padding: 6px 14px;
+            border-radius: 12px;
+            max-width: 80%;
+            word-break: break-word;
+            font-size: 12px;
+            animation: fadeIn 0.2s ease;
+            font-weight: 400;
+            line-height: 1.4;
+        }
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(6px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        #chat-messages-full .msg.teacher {
+            background: #1a3a2a;
+            border-left: 3px solid #ffd700;
+            align-self: flex-start;
+        }
+        #chat-messages-full .msg.student {
+            background: #1a2a3a;
+            border-left: 3px solid #42a5f5;
+            align-self: flex-end;
+        }
+        #chat-messages-full .msg.system {
+            background: transparent;
+            border: none;
+            align-self: center;
+            max-width: 90%;
+            text-align: center;
+            color: #4a5a52;
+            font-size: 10px;
+            padding: 2px 12px;
+            font-weight: 300;
+        }
+        #chat-messages-full .msg .sender {
+            font-size: 9px;
+            color: #5a6a62;
+            margin-bottom: 1px;
+            font-weight: 500;
+        }
+        #chat-messages-full .msg .timestamp {
+            font-size: 8px;
+            color: #3a4a42;
+            margin-left: 6px;
+        }
+        #chat-input-row {
+            display: flex;
+            gap: 6px;
+            flex-shrink: 0;
+            padding: 4px 0;
+        }
+        #chat-input-row input {
+            flex: 1;
+            padding: 8px 16px;
+            border-radius: 30px;
+            border: 1px solid #1a241e;
+            background: #0e1411;
+            color: #e8edec;
+            outline: none;
+            font-size: 12px;
+            font-weight: 400;
+        }
+        #chat-input-row input:focus {
+            border-color: #ffd700;
+        }
+        #chat-input-row input::placeholder {
+            color: #3a4a42;
+        }
+        #chat-input-row button {
+            padding: 8px 20px;
+            border-radius: 30px;
+            border: none;
+            background: linear-gradient(135deg, #ffd700, #f5a623);
+            color: #111;
+            font-weight: 500;
+            cursor: pointer;
+            transition: 0.2s;
+            font-size: 12px;
+        }
+        #chat-input-row button:hover {
+            transform: scale(1.02);
+        }
+        #chat-input-row .reaction-btn {
+            padding: 8px 12px;
+            border-radius: 30px;
+            border: 1px solid #1a241e;
+            background: #0e1411;
+            color: #8a9a92;
+            cursor: pointer;
+            font-size: 14px;
+            transition: 0.2s;
+        }
+        #chat-input-row .reaction-btn:hover {
+            background: #161e1a;
+            border-color: #ffd700;
+        }
+
+        /* ============================================================
+                   PANEL 4: MEDIA & TOOLS
+                   ============================================================ */
+        #panel-media {
+            flex-direction: column;
+            background: #0a0f0d;
+            padding: 16px 20px;
+        }
+        #panel-media .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            flex-shrink: 0;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+        #panel-media .panel-header h2 {
+            font-weight: 300;
+            color: #c8d4ce;
+            font-size: 1.1rem;
+            letter-spacing: 1px;
+        }
+        #panel-media .panel-header .media-actions {
+            display: flex;
+            gap: 4px;
+        }
+        #panel-media .panel-header .media-actions button {
+            background: #121a16;
+            border: 1px solid #1a241e;
+            color: #8a9a92;
+            padding: 4px 12px;
+            border-radius: 16px;
+            cursor: pointer;
+            font-size: 9px;
+            transition: 0.2s;
+        }
+        #panel-media .panel-header .media-actions button:hover {
+            border-color: #ffd700;
+            color: #ffd700;
+        }
+        #media-grid {
+            flex: 1;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+            gap: 10px;
+            overflow-y: auto;
+            align-content: start;
+        }
+        .media-item {
+            background: #121a16;
+            border: 1px solid #1a241e;
+            border-radius: 12px;
+            padding: 14px;
+            text-align: center;
+            cursor: pointer;
+            transition: 0.2s;
+            aspect-ratio: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+        }
+        .media-item:hover {
+            border-color: #ffd700;
+            background: #161e1a;
+        }
+        .media-item .icon {
+            font-size: 2rem;
+        }
+        .media-item .label {
+            font-size: 9px;
+            color: #5a6a62;
+            font-weight: 300;
+        }
+
+        /* ============================================================
+                   PANEL 5: SETTINGS
+                   ============================================================ */
+        #panel-settings {
+            flex-direction: column;
+            background: #0a0f0d;
+            padding: 16px 24px;
+            overflow-y: auto;
+        }
+        #panel-settings .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 14px;
+            flex-shrink: 0;
+        }
+        #panel-settings .panel-header h2 {
+            font-weight: 300;
+            color: #c8d4ce;
+            font-size: 1.1rem;
+            letter-spacing: 1px;
+        }
+        .settings-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            max-width: 600px;
+            padding-bottom: 20px;
+        }
+        .settings-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 16px;
+            background: #121a16;
+            border-radius: 10px;
+            border: 1px solid #161e1a;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .settings-item .label {
+            color: #b0c0b8;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-weight: 400;
+        }
+        .settings-item .value {
+            color: #5a6a62;
+            font-size: 12px;
+            font-weight: 300;
+        }
+        .settings-item select {
+            background: #0a0f0d;
+            border: 1px solid #1a241e;
+            color: #e8edec;
+            padding: 5px 12px;
+            border-radius: 6px;
+            outline: none;
+            font-size: 11px;
+            cursor: pointer;
+        }
+        .settings-item select:focus {
+            border-color: #ffd700;
+        }
+        .settings-item select option {
+            background: #0a0f0d;
+            color: #e8edec;
+        }
+        .settings-item input {
+            background: #0a0f0d;
+            border: 1px solid #1a241e;
+            color: #e8edec;
+            padding: 5px 12px;
+            border-radius: 6px;
+            outline: none;
+            width: 160px;
+            font-size: 11px;
+        }
+        .settings-item input:focus {
+            border-color: #ffd700;
+        }
+        .settings-item .url-input {
+            flex: 1;
+            min-width: 100px;
+        }
+        .settings-item .url-btn {
+            padding: 5px 16px;
+            border-radius: 20px;
+            border: none;
+            background: #ffd700;
+            color: #111;
+            font-weight: 500;
+            cursor: pointer;
+            font-size: 11px;
+            transition: 0.2s;
+            white-space: nowrap;
+        }
+        .settings-item .url-btn:hover {
+            transform: scale(1.02);
+        }
+        .settings-item .color-picker-input {
+            width: 40px;
+            height: 30px;
+            border: 1px solid #1a241e;
+            border-radius: 6px;
+            padding: 2px;
+            cursor: pointer;
+            background: #0a0f0d;
+        }
+        .toggle-switch {
+            width: 38px;
+            height: 20px;
+            background: #1a241e;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: 0.2s;
+            position: relative;
+            flex-shrink: 0;
+        }
+        .toggle-switch.active {
+            background: #ffd700;
+        }
+        .toggle-switch .thumb {
+            width: 14px;
+            height: 14px;
+            background: #e8edec;
+            border-radius: 50%;
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            transition: 0.2s;
+        }
+        .toggle-switch.active .thumb {
+            left: 21px;
+        }
+
+        .settings-section-title {
+            color: #ffd700;
+            font-size: 12px;
+            font-weight: 500;
+            padding: 8px 0 4px 0;
+            border-bottom: 1px solid #1a241e;
+            letter-spacing: 1px;
+        }
+
+        .shortcuts-box {
+            background: #0e1411;
+            border: 1px solid #161e1a;
+            border-radius: 10px;
+            padding: 10px 14px;
+            margin-top: 6px;
+        }
+        .shortcuts-box h4 {
+            color: #5a6a62;
+            font-size: 10px;
+            font-weight: 400;
+            margin-bottom: 4px;
+            letter-spacing: 1px;
+        }
+        .shortcuts-box .shortcut-row {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            font-size: 10px;
+            color: #4a5a52;
+        }
+        .shortcuts-box .shortcut-row kbd {
+            background: #121a16;
+            padding: 2px 8px;
+            border-radius: 4px;
+            border: 1px solid #1a241e;
+            color: #8a9a92;
+            font-size: 9px;
+        }
+
+        /* ============================================================
+                   TIMER - Floating Control
+                   ============================================================ */
+        #timer-container {
+            position: fixed;
+            top: 12px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 95;
+            background: rgba(10, 15, 13, 0.92);
+            padding: 6px 16px;
+            border-radius: 30px;
+            backdrop-filter: blur(12px);
+            border: 1px solid #1a241e;
+            display: none;
+            align-items: center;
+            gap: 10px;
+        }
+        #timer-container.show {
+            display: flex;
+        }
+        #timer-container .timer-display {
+            font-size: 18px;
+            font-weight: 300;
+            color: #ffd700;
+            letter-spacing: 2px;
+            font-variant-numeric: tabular-nums;
+            min-width: 80px;
+            text-align: center;
+        }
+        #timer-container button {
+            background: transparent;
+            border: 1px solid #1a241e;
+            color: #8a9a92;
+            padding: 2px 10px;
+            border-radius: 16px;
+            cursor: pointer;
+            font-size: 10px;
+            transition: 0.2s;
+        }
+        #timer-container button:hover {
+            border-color: #ffd700;
+            color: #ffd700;
+        }
+        #timer-container .timer-close {
+            color: #5a6a62;
+            padding: 2px 6px;
+        }
+        #timer-container .timer-close:hover {
+            color: #ff6b6b;
+            border-color: #ff6b6b;
+        }
+
+        /* ============================================================
+                   POLL / QUIZ - Floating Overlay
+                   ============================================================ */
+        #poll-container {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 200;
+            background: rgba(8, 12, 10, 0.96);
+            padding: 30px 40px;
+            border-radius: 20px;
+            border: 1px solid #1a241e;
+            backdrop-filter: blur(20px);
+            display: none;
+            min-width: 400px;
+            max-width: 90vw;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        #poll-container.show {
+            display: block;
+        }
+        #poll-container .poll-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+        #poll-container .poll-header h3 {
+            font-weight: 300;
+            color: #ffd700;
+            font-size: 1.2rem;
+        }
+        #poll-container .poll-header button {
+            background: transparent;
+            border: none;
+            color: #5a6a62;
+            font-size: 1.2rem;
+            cursor: pointer;
+        }
+        #poll-container .poll-header button:hover {
+            color: #ff6b6b;
+        }
+        #poll-container .poll-question {
+            font-size: 1.1rem;
+            color: #c8d4ce;
+            margin-bottom: 16px;
+        }
+        #poll-container .poll-options {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        #poll-container .poll-option {
+            background: #121a16;
+            border: 1px solid #1a241e;
+            border-radius: 10px;
+            padding: 10px 16px;
+            cursor: pointer;
+            transition: 0.2s;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        #poll-container .poll-option:hover {
+            border-color: #ffd700;
+        }
+        #poll-container .poll-option .vote-count {
+            color: #5a6a62;
+            font-size: 11px;
+        }
+        #poll-container .poll-option .vote-bar {
+            height: 4px;
+            background: #ffd700;
+            border-radius: 2px;
+            margin-top: 4px;
+            transition: 0.5s;
+            width: 0%;
+        }
+        #poll-container .poll-result {
+            color: #5a6a62;
+            font-size: 11px;
+            margin-top: 12px;
+            text-align: center;
+        }
+
+        /* ============================================================
+                   RIGHT SIDEBAR (Quick Controls)
+                   ============================================================ */
+        #right-sidebar {
+            width: 48px;
+            height: 100vh;
+            background: #0e1411;
+            border-left: 1px solid #1a241e;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 12px 0;
+            gap: 6px;
+            z-index: 50;
+            flex-shrink: 0;
+            transition: all 0.3s ease;
+            overflow-y: auto;
+        }
+        #right-sidebar.hidden {
+            width: 0;
+            padding: 0;
+            border: none;
+            overflow: hidden;
+        }
+        .sidebar-btn {
+            width: 34px;
+            height: 34px;
+            border-radius: 8px;
+            border: 1px solid transparent;
+            background: transparent;
+            color: #4a5a52;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+        .sidebar-btn:hover {
+            background: #1a241e;
+            color: #8a9a92;
+        }
+        .sidebar-btn.active {
+            border-color: #ffd700;
+            color: #ffd700;
+        }
+        .sidebar-btn .tooltip {
+            position: absolute;
+            right: 44px;
+            background: #121a16;
+            color: #8a9a92;
+            padding: 4px 12px;
+            border-radius: 6px;
+            font-size: 9px;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: 0.2s;
+            border: 1px solid #1a241e;
+        }
+        .sidebar-btn:hover .tooltip {
+            opacity: 1;
+        }
+        .sidebar-spacer {
+            flex: 1;
+        }
+
+        /* ============================================================
+                   FLOATING VIDEO GRID (Resizable)
+                   ============================================================ */
+        #video-grid {
+            position: fixed;
+            top: 12px;
+            right: 60px;
+            width: 160px;
+            max-height: 55vh;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            z-index: 100;
+            pointer-events: auto;
+            background: rgba(10, 15, 13, 0.85);
+            padding: 6px;
+            border-radius: 12px;
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 215, 0, 0.08);
+            overflow-y: auto;
+            min-width: 80px;
+            min-height: 60px;
+            max-width: 400px;
+            max-height: 70vh;
+        }
+        #video-grid .video-box {
+            width: 100%;
+            aspect-ratio: 4/3;
+            background: #0a0a0a;
+            border: 2px solid rgba(255, 215, 0, 0.3);
+            border-radius: 8px;
+            overflow: hidden;
+            position: relative;
+            flex-shrink: 0;
+        }
+        #video-grid .video-box:hover {
+            border-color: #ffd700;
+        }
+        #video-grid .video-box video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        #video-grid .video-box .video-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0, 0, 0, 0.5);
+            color: #5a6a62;
+            font-size: 10px;
+        }
+        #video-grid .video-label {
+            position: absolute;
+            bottom: 3px;
+            left: 4px;
+            background: rgba(0, 0, 0, 0.7);
+            color: #c8d4ce;
+            font-size: 7px;
+            padding: 2px 8px;
+            border-radius: 6px;
+            backdrop-filter: blur(2px);
+            font-weight: 300;
+            letter-spacing: 0.3px;
+        }
+        .mirror {
+            transform: scaleX(-1);
+        }
+        .cam-toggle-overlay {
+            position: absolute;
+            top: 3px;
+            right: 3px;
+            background: rgba(0, 0, 0, 0.75);
+            color: #ffd700;
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            padding: 2px 6px;
+            font-size: 7px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            letter-spacing: 0.3px;
+        }
+        .cam-toggle-overlay:hover {
+            background: #ffd700;
+            color: #111;
+        }
+
+        /* Resize handle */
+        #video-grid-resize-handle {
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            width: 16px;
+            height: 16px;
+            cursor: nwse-resize;
+            background: transparent;
+            z-index: 5;
+        }
+        #video-grid-resize-handle::after {
+            content: '';
+            position: absolute;
+            bottom: 2px;
+            right: 2px;
+            width: 10px;
+            height: 10px;
+            border-right: 2px solid rgba(255, 215, 0, 0.3);
+            border-bottom: 2px solid rgba(255, 215, 0, 0.3);
+            border-radius: 0 0 4px 0;
+        }
+        #video-grid-resize-handle:hover::after {
+            border-color: #ffd700;
+        }
+
+        .video-size-controls {
+            display: flex;
+            gap: 4px;
+            padding: 2px 4px;
+            justify-content: center;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            margin-top: 2px;
+        }
+        .video-size-controls button {
+            background: transparent;
+            border: 1px solid #1a241e;
+            color: #5a6a62;
+            padding: 2px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 8px;
+            transition: 0.2s;
+        }
+        .video-size-controls button:hover {
+            border-color: #ffd700;
+            color: #ffd700;
+        }
+
+        /* ============================================================
+                   LOCK INDICATOR
+                   ============================================================ */
+        #lock-indicator {
+            position: fixed;
+            top: 12px;
+            left: 74px;
+            z-index: 90;
+            background: rgba(178, 34, 34, 0.9);
+            color: #e8edec;
+            padding: 3px 14px;
+            border-radius: 30px;
+            font-size: 10px;
+            font-weight: 400;
+            display: none;
+            backdrop-filter: blur(4px);
+            border: 1px solid rgba(255, 107, 107, 0.2);
+            letter-spacing: 0.5px;
+        }
+
+        /* ============================================================
+                   SCROLLBAR
+                   ============================================================ */
+        ::-webkit-scrollbar {
+            width: 3px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0a0f0d;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #1a241e;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #2a3a32;
+        }
+
+        /* ============================================================
+                   RESPONSIVE
+                   ============================================================ */
+        @media (max-width: 768px) {
+            #tab-bar {
+                width: 48px;
+            }
+            .tab-btn {
+                width: 34px;
+                height: 34px;
+                font-size: 0.9rem;
+            }
+            #right-sidebar {
+                width: 40px;
+            }
+            .sidebar-btn {
+                width: 30px;
+                height: 30px;
+                font-size: 0.9rem;
+            }
+            #video-grid {
+                width: 120px;
+                right: 50px;
+                top: 8px;
+                padding: 4px;
+            }
+            #student-grid {
+                grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+            }
+            .student-card {
+                min-height: 80px;
+                padding: 8px;
+            }
+            .student-card .avatar {
+                width: 32px;
+                height: 32px;
+                font-size: 1rem;
+            }
+            #panel-students {
+                padding: 10px 14px;
+            }
+            #whiteboard-toolbar {
+                padding: 0 6px;
+                gap: 2px;
+                min-height: 36px;
+            }
+            .wb-btn {
+                font-size: 8px;
+                padding: 2px 5px;
+            }
+            #chat-messages-full .msg {
+                font-size: 11px;
+                max-width: 90%;
+            }
+            #chat-input-row input {
+                font-size: 11px;
+                padding: 6px 12px;
+            }
+            #chat-input-row button {
+                padding: 6px 14px;
+                font-size: 11px;
+            }
+            #panel-chat {
+                padding: 8px 10px 10px 10px;
+            }
+            .settings-item {
+                flex-wrap: wrap;
+                gap: 6px;
+            }
+            .settings-item input {
+                width: 100%;
+            }
+            #role-selector .role-container {
+                flex-direction: column;
+                align-items: center;
+            }
+            #role-selector .role-box {
+                width: 260px;
+                padding: 18px 22px;
+            }
+            #role-selector h1 {
+                font-size: 1.8rem;
+            }
+            #poll-container {
+                min-width: 90vw;
+                padding: 20px;
+            }
+            #timer-container {
+                padding: 4px 12px;
+                gap: 6px;
+            }
+            #timer-container .timer-display {
+                font-size: 14px;
+                min-width: 60px;
+            }
+        }
+        @media (max-width: 480px) {
+            #tab-bar {
+                width: 40px;
+            }
+            .tab-btn {
+                width: 28px;
+                height: 28px;
+                font-size: 0.7rem;
+            }
+            #right-sidebar {
+                width: 34px;
+            }
+            .sidebar-btn {
+                width: 26px;
+                height: 26px;
+                font-size: 0.7rem;
+            }
+            #role-selector h1 {
+                font-size: 1.4rem;
+                letter-spacing: 4px;
+            }
+            #role-selector .role-box {
+                width: 220px;
+                padding: 14px 18px;
+            }
+            #role-selector .role-box input {
+                font-size: 0.8rem;
+                padding: 8px 12px;
+            }
+            #video-grid {
+                width: 90px;
+                right: 42px;
+                top: 6px;
+                padding: 3px;
+            }
+            #video-grid .video-box {
+                border-width: 1px;
+            }
+            #lock-indicator {
+                font-size: 8px;
+                padding: 2px 8px;
+                left: 54px;
+                top: 6px;
+            }
+            #chat-messages-full .msg {
+                font-size: 10px;
+                max-width: 92%;
+                padding: 4px 10px;
+            }
+            #chat-input-row input {
+                font-size: 10px;
+                padding: 5px 10px;
+            }
+            #chat-input-row button {
+                padding: 5px 12px;
+                font-size: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ============================================================
+    ROLE SELECTOR (Login Screen)
+    ============================================================ -->
+    <div id="role-selector">
+        <div class="logo">🎓</div>
+        <h1>A-Class Plus</h1>
+        <div class="subtitle">Complete Virtual Classroom</div>
+
+        <div class="role-container">
+            <div class="role-box teacher-box">
+                <div class="role-title">
+                    <span class="icon">👨‍🏫</span>
+                    <span class="teacher-color">Teacher</span>
+                </div>
+                <div class="role-desc">Full control • Lock • Record • Polls • Timer</div>
+                <input type="password" id="teacher-password" placeholder="Teacher password" />
+                <button class="login-btn teacher-btn" onclick="loginAs('teacher')">Enter Classroom</button>
+                <div class="password-hint">Default: teacher123</div>
+            </div>
+
+            <div class="role-box student-box">
+                <div class="role-title">
+                    <span class="icon">👩‍🎓</span>
+                    <span class="student-color">Student</span>
+                </div>
+                <div class="role-desc">Participate • Raise hand • Chat • View board</div>
+                <input type="password" id="student-password" placeholder="Student password" />
+                <button class="login-btn student-btn" onclick="loginAs('student')">Enter Classroom</button>
+                <div class="password-hint">Default: student123</div>
+            </div>
+        </div>
+        <div id="error-msg"></div>
+    </div>
+
+    <!-- ============================================================
+    LOCK INDICATOR
+    ============================================================ -->
+    <div id="lock-indicator">🔒 Locked</div>
+
+    <!-- ============================================================
+    TIMER
+    ============================================================ -->
+    <div id="timer-container">
+        <span class="timer-display" id="timer-display">00:00</span>
+        <button onclick="startTimer()">▶</button>
+        <button onclick="pauseTimer()">⏸</button>
+        <button onclick="resetTimer()">⟳</button>
+        <button class="timer-close" onclick="hideTimer()">✕</button>
+    </div>
+
+    <!-- ============================================================
+    POLL CONTAINER
+    ============================================================ -->
+    <div id="poll-container">
+        <div class="poll-header">
+            <h3>📊 Poll</h3>
+            <button onclick="closePoll()">✕</button>
+        </div>
+        <div class="poll-question" id="poll-question">Question here</div>
+        <div class="poll-options" id="poll-options"></div>
+        <div class="poll-result" id="poll-result"></div>
+    </div>
+
+    <!-- ============================================================
+    FLOATING VIDEO GRID
+    ============================================================ -->
+    <div id="video-grid">
+        <div class="video-box" id="local-box">
+            <video id="local-video" autoplay playsinline muted class="mirror"></video>
+            <button class="cam-toggle-overlay" onclick="toggleLocalCamera()">📷</button>
+            <div class="video-label">You</div>
+        </div>
+        <div id="video-grid-resize-handle"></div>
+        <div class="video-size-controls">
+            <button onclick="resizeVideoGrid('small')">S</button>
+            <button onclick="resizeVideoGrid('medium')">M</button>
+            <button onclick="resizeVideoGrid('large')">L</button>
+        </div>
+    </div>
+
+    <!-- ============================================================
+    MAIN APP CONTAINER
+    ============================================================ -->
+    <div id="app-container">
+
+        <!-- ============================================================
+        TAB BAR
+        ============================================================ -->
+        <div id="tab-bar">
+            <button class="tab-btn active" data-tab="whiteboard" onclick="switchTab('whiteboard')">
+                ✏️
+                <span class="tooltip">Whiteboard</span>
+            </button>
+            <button class="tab-btn" data-tab="students" onclick="switchTab('students')">
+                👥
+                <span class="tooltip">Students</span>
+                <span class="badge" id="student-count-badge">0</span>
+            </button>
+            <button class="tab-btn" data-tab="chat" onclick="switchTab('chat')">
+                💬
+                <span class="tooltip">Chat</span>
+            </button>
+            <button class="tab-btn" data-tab="media" onclick="switchTab('media')">
+                📁
+                <span class="tooltip">Media & Tools</span>
+            </button>
+            <button class="tab-btn" data-tab="settings" onclick="switchTab('settings')">
+                ⚙️
+                <span class="tooltip">Settings</span>
+            </button>
+            <div class="tab-spacer"></div>
+            <button class="tab-btn hide-tab" onclick="toggleTabBar()">
+                ◀
+                <span class="tooltip">Hide Tabs</span>
+            </button>
+        </div>
+
+        <!-- ============================================================
+        CONTENT AREA
+        ============================================================ -->
+        <div id="content-area">
+
+            <!-- ============================================================
+            PANEL 1: WHITEBOARD
+            ============================================================ -->
+            <div id="panel-whiteboard" class="tab-panel active">
+                <div id="whiteboard-toolbar">
+                    <div class="tool-group">
+                        <button class="wb-btn active" onclick="setTipStyle('chalk')">🖍️ Chalk</button>
+                        <button class="wb-btn" onclick="setTipStyle('pen')">✒️ Pen</button>
+                        <button class="wb-btn" onclick="setMode('erase')">🧽 Eraser</button>
+                        <button class="wb-btn" onclick="setMode('shape')">⬜ Shape</button>
+                        <button class="wb-btn" onclick="setMode('text')">📝 Text</button>
+                    </div>
+                    <div class="tool-group">
+                        <button class="wb-btn" onclick="changeColor('#ffffff', this)">
+                            <span class="color-dot-sm selected" style="background:#ffffff;"></span>
+                        </button>
+                        <button class="wb-btn" onclick="changeColor('#ffeb3b', this)">
+                            <span class="color-dot-sm" style="background:#ffeb3b;"></span>
+                        </button>
+                        <button class="wb-btn" onclick="changeColor('#00e5ff', this)">
+                            <span class="color-dot-sm" style="background:#00e5ff;"></span>
+                        </button>
+                        <button class="wb-btn" onclick="changeColor('#ff5252', this)">
+                            <span class="color-dot-sm" style="background:#ff5252;"></span>
+                        </button>
+                        <button class="wb-btn" onclick="changeColor('#ff6f00', this)">
+                            <span class="color-dot-sm" style="background:#ff6f00;"></span>
+                        </button>
+                        <button class="wb-btn" onclick="changeColor('#7c4dff', this)">
+                            <span class="color-dot-sm" style="background:#7c4dff;"></span>
+                        </button>
+                    </div>
+                    <div class="tool-group">
+                        <button class="wb-btn" onclick="setBrushSize('small')">S</button>
+                        <button class="wb-btn active" onclick="setBrushSize('medium')">M</button>
+                        <button class="wb-btn" onclick="setBrushSize('large')">L</button>
+                    </div>
+                    <div class="tool-group">
+                        <button class="wb-btn" onclick="toggleMathTools()">📐 Math</button>
+                        <button class="wb-btn" onclick="clearCanvas(true)">🗑️ Clear</button>
+                        <button class="wb-btn" onclick="undoDraw()">↩️</button>
+                        <button class="wb-btn" onclick="redoDraw()">↪️</button>
+                        <button class="wb-btn" onclick="saveBoard()">💾</button>
+                    </div>
+                    <div class="tool-group" id="teacher-tools" style="display:none;">
+                        <button class="wb-btn" onclick="toggleStudentWriting()" id="lock-btn">🔒 Lock</button>
+                        <button class="wb-btn" onclick="toggleRecording()" id="record-btn">🔴 Rec</button>
+                        <button class="wb-btn" onclick="muteAllStudents()">🔇 Mute</button>
+                        <button class="wb-btn" onclick="showTimer()">⏱️ Timer</button>
+                        <button class="wb-btn" onclick="createPoll()">📊 Poll</button>
+                        <button class="wb-btn" onclick="document.getElementById('pdf-loader').click()">📄 PDF</button>
+                        <input type="file" id="pdf-loader" accept=".pdf" onchange="loadPDF(event)" style="display:none;">
+                        <button class="wb-btn" onclick="document.getElementById('img-loader').click()">🖼️ Image</button>
+                        <input type="file" id="img-loader" accept="image/*" onchange="loadMedia(event)" style="display:none;">
+                    </div>
+                    <div class="tool-group" style="margin-left:auto;">
+                        <span id="page-num-indicator" style="font-size:9px;color:#5a6a62;"></span>
+                    </div>
+                </div>
+                <div id="whiteboard-container">
+                    <div id="zoom-wrapper">
+                        <div id="media-layer"></div>
+                    </div>
+                    <canvas id="drawing-layer"></canvas>
+                    <div id="math-tools-overlay">
+                        <button onclick="insertMathSymbol('∑')">Σ</button>
+                        <button onclick="insertMathSymbol('∫')">∫</button>
+                        <button onclick="insertMathSymbol('√')">√</button>
+                        <button onclick="insertMathSymbol('π')">π</button>
+                        <button onclick="insertMathSymbol('∞')">∞</button>
+                        <button onclick="insertMathSymbol('θ')">θ</button>
+                        <button onclick="insertMathSymbol('α')">α</button>
+                        <button onclick="insertMathSymbol('β')">β</button>
+                        <button onclick="insertMathSymbol('∂')">∂</button>
+                        <button onclick="insertMathSymbol('Δ')">Δ</button>
+                    </div>
+                    <div id="shape-tools-overlay">
+                        <button onclick="setShape('rectangle')">▭</button>
+                        <button onclick="setShape('circle')">◯</button>
+                        <button onclick="setShape('line')">━</button>
+                        <button onclick="setShape('arrow')">→</button>
+                        <button onclick="setShape('triangle')">△</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ============================================================
+            PANEL 2: STUDENTS
+            ============================================================ -->
+            <div id="panel-students" class="tab-panel">
+                <div class="panel-header">
+                    <h2>👥 Students</h2>
+                    <div class="header-actions">
+                        <button onclick="takeAttendance()">📋 Attendance</button>
+                        <button onclick="lowerAllHands()">👋 Lower Hands</button>
+                    </div>
+                    <span class="count" id="student-count">0 online</span>
+                </div>
+                <div id="student-grid"></div>
+            </div>
+
+            <!-- ============================================================
+            PANEL 3: CHAT
+            ============================================================ -->
+            <div id="panel-chat" class="tab-panel">
+                <div id="chat-panel">
+                    <div class="chat-header">
+                        <h2>💬 Chat</h2>
+                        <div class="chat-actions">
+                            <button onclick="clearChat()">Clear</button>
+                        </div>
+                        <span class="chat-count" id="chat-msg-count">0 messages</span>
+                    </div>
+                    <div id="chat-messages-full">
+                        <div class="msg system">Welcome to A-Class Plus</div>
+                    </div>
+                    <div id="chat-input-row">
+                        <input type="text" id="chat-input-full" placeholder="Type your message..." />
+                        <button onclick="sendChatMessage()">Send</button>
+                        <button class="reaction-btn" onclick="sendReaction('👍')">👍</button>
+                        <button class="reaction-btn" onclick="sendReaction('😂')">😂</button>
+                        <button class="reaction-btn" onclick="sendReaction('❤️')">❤️</button>
+                        <button class="reaction-btn" onclick="sendReaction('👏')">👏</button>
+                        <button class="reaction-btn" onclick="sendReaction('💡')">💡</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ============================================================
+            PANEL 4: MEDIA & TOOLS
+            ============================================================ -->
+            <div id="panel-media" class="tab-panel">
+                <div class="panel-header">
+                    <h2>📁 Media & Tools</h2>
+                    <div class="media-actions">
+                        <button onclick="shareScreen()">🖥️ Share Screen</button>
+                        <button onclick="startBreakoutRooms()">🚪 Breakout Rooms</button>
+                    </div>
+                </div>
+                <div id="media-grid">
+                    <div class="media-item" onclick="document.getElementById('img-loader-2').click()">
+                        <div class="icon">🖼️</div>
+                        <div class="label">Upload Image</div>
+                        <input type="file" id="img-loader-2" accept="image/*" onchange="loadMedia(event)" style="display:none;">
+                    </div>
+                    <div class="media-item" onclick="document.getElementById('pdf-loader-2').click()">
+                        <div class="icon">📄</div>
+                        <div class="label">Upload PDF</div>
+                        <input type="file" id="pdf-loader-2" accept=".pdf" onchange="loadPDF(event)" style="display:none;">
+                    </div>
+                    <div class="media-item" onclick="document.getElementById('file-loader').click()">
+                        <div class="icon">📎</div>
+                        <div class="label">Upload File</div>
+                        <input type="file" id="file-loader" onchange="loadFile(event)" style="display:none;">
+                    </div>
+                    <div class="media-item" onclick="showTimer()">
+                        <div class="icon">⏱️</div>
+                        <div class="label">Timer</div>
+                    </div>
+                    <div class="media-item" onclick="createPoll()">
+                        <div class="icon">📊</div>
+                        <div class="label">Create Poll</div>
+                    </div>
+                    <div class="media-item" onclick="shareScreen()">
+                        <div class="icon">🖥️</div>
+                        <div class="label">Share Screen</div>
+                    </div>
+                    <div class="media-item" onclick="toggleVirtualBackground()">
+                        <div class="icon">🎨</div>
+                        <div class="label">Virtual BG</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ============================================================
+            PANEL 5: SETTINGS
+            ============================================================ -->
+            <div id="panel-settings" class="tab-panel">
+                <div class="panel-header">
+                    <h2>⚙️ Settings</h2>
+                </div>
+                <div class="settings-group">
+                    <div class="settings-section-title">👤 Profile</div>
+                    <div class="settings-item">
+                        <span class="label">👤 Your Role</span>
+                        <span class="value" id="settings-role">—</span>
+                    </div>
+                    <div class="settings-item">
+                        <span class="label">📛 Your Name</span>
+                        <input type="text" id="settings-name" placeholder="Enter your name" onchange="updateName()" />
+                    </div>
+
+                    <div class="settings-section-title">📹 Camera</div>
+                    <div class="settings-item">
+                        <span class="label">📷 Camera</span>
+                        <div class="toggle-switch active" onclick="toggleLocalCamera(); this.classList.toggle('active')">
+                            <div class="thumb"></div>
+                        </div>
+                    </div>
+                    <div class="settings-item">
+                        <span class="label">🔊 Audio</span>
+                        <div class="toggle-switch active" onclick="toggleAudio(); this.classList.toggle('active')">
+                            <div class="thumb"></div>
+                        </div>
+                    </div>
+                    <div class="settings-item">
+                        <span class="label">📹 Camera Device</span>
+                        <select id="camera-select" onchange="switchCamera()">
+                            <option value="default">Default Camera</option>
+                        </select>
+                    </div>
+                    <div class="settings-item">
+                        <span class="label">🎥 Resolution</span>
+                        <select id="resolution-select" onchange="changeResolution()">
+                            <option value="320x240">320x240 (Low)</option>
+                            <option value="640x480" selected>640x480 (SD)</option>
+                            <option value="1280x720">1280x720 (HD)</option>
+                            <option value="1920x1080">1920x1080 (FHD)</option>
+                        </select>
+                    </div>
+                    <div class="settings-item">
+                        <span class="label">🔄 Mirror Mode</span>
+                        <div class="toggle-switch active" onclick="toggleMirror(); this.classList.toggle('active')">
+                            <div class="thumb"></div>
+                        </div>
+                    </div>
+                    <div class="settings-item">
+                        <span class="label">💡 Low Light Mode</span>
+                        <div class="toggle-switch" onclick="toggleLowLight(); this.classList.toggle('active')">
+                            <div class="thumb"></div>
+                        </div>
+                    </div>
+                    <div class="settings-item">
+                        <span class="label">🎨 Virtual Background</span>
+                        <input type="color" class="color-picker-input" id="bg-color" value="#1a3a2a" onchange="changeVirtualBg()" />
+                    </div>
+
+                    <div class="settings-section-title">🔒 Classroom Controls</div>
+                    <div class="settings-item" id="teacher-settings" style="display:none;">
+                        <span class="label">🔒 Lock Board</span>
+                        <div class="toggle-switch" onclick="toggleStudentWriting(); this.classList.toggle('active')">
+                            <div class="thumb"></div>
+                        </div>
+                    </div>
+                    <div class="settings-item">
+                        <span class="label">🌐 Open Website</span>
+                        <input type="text" id="web-url-input" class="url-input" placeholder="Enter URL..." />
+                        <button class="url-btn" onclick="launchWeb()">Go</button>
+                    </div>
+
+                    <div class="settings-section-title">📊 Statistics</div>
+                    <div class="settings-item">
+                        <span class="label">📊 Students Online</span>
+                        <span class="value" id="settings-student-count">0</span>
+                    </div>
+                    <div class="settings-item">
+                        <span class="label">💬 Messages</span>
+                        <span class="value" id="settings-msg-count">0</span>
+                    </div>
+
+                    <div class="settings-section-title">🔑 Passwords</div>
+                    <div class="settings-item">
+                        <span class="label">🔑 Teacher Password</span>
+                        <span class="value" style="color:#ffd700;">••••••••</span>
+                    </div>
+                    <div class="settings-item">
+                        <span class="label">🔑 Student Password</span>
+                        <span class="value" style="color:#42a5f5;">••••••••</span>
+                    </div>
+
+                    <div class="shortcuts-box">
+                        <h4>⌨️ Keyboard Shortcuts</h4>
+                        <div class="shortcut-row">
+                            <span><kbd>Ctrl+1</kbd> Board</span>
+                            <span><kbd>Ctrl+2</kbd> Students</span>
+                            <span><kbd>Ctrl+3</kbd> Chat</span>
+                            <span><kbd>Ctrl+4</kbd> Media</span>
+                            <span><kbd>Ctrl+5</kbd> Settings</span>
+                            <span><kbd>Ctrl+B</kbd> Tabs</span>
+                            <span><kbd>Ctrl+Z</kbd> Undo</span>
+                            <span><kbd>Ctrl+Y</kbd> Redo</span>
+                            <span><kbd>Space</kbd> Raise Hand</span>
+                            <span><kbd>Ctrl+S</kbd> Save Board</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div><!-- /content-area -->
+
+        <!-- ============================================================
+        RIGHT SIDEBAR (Quick Controls)
+        ============================================================ -->
+        <div id="right-sidebar">
+            <button class="sidebar-btn" onclick="toggleRightSidebar()" title="Toggle Sidebar">
+                ▶
+                <span class="tooltip">Toggle Sidebar</span>
+            </button>
+            <button class="sidebar-btn" onclick="raiseHand()" title="Raise Hand">
+                ✋
+                <span class="tooltip">Raise Hand</span>
+            </button>
+            <button class="sidebar-btn" onclick="toggleLocalCamera()" title="Camera">
+                📷
+                <span class="tooltip">Toggle Camera</span>
+            </button>
+            <button class="sidebar-btn" onclick="toggleAudio()" title="Audio">
+                🔊
+                <span class="tooltip">Toggle Audio</span>
+            </button>
+            <button class="sidebar-btn" onclick="showTimer()" title="Timer">
+                ⏱️
+                <span class="tooltip">Timer</span>
+            </button>
+            <button class="sidebar-btn" onclick="takeScreenshot()" title="Screenshot">
+                📸
+                <span class="tooltip">Screenshot</span>
+            </button>
+            <div class="sidebar-spacer"></div>
+            <button class="sidebar-btn" onclick="toggleFullscreen()" title="Fullscreen">
+                ⛶
+                <span class="tooltip">Fullscreen</span>
+            </button>
+        </div>
+
+    </div><!-- /app-container -->
+
+    <!-- ============================================================
+    JAVASCRIPT - COMPLETE
+    ============================================================ -->
+    <script>
+        // ============================================================
+        // 1. PDF.js Worker
+        // ============================================================
+        pdfjsLib.GlobalWorkerOptions.workerSrc =
+            'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+
+        // ============================================================
+        // 2. Socket Connection
+        // ============================================================
+        const socket = io();
+
+        // ============================================================
+        // 3. Passwords
+        // ============================================================
+        const TEACHER_PASSWORD = 'teacher123';
+        const STUDENT_PASSWORD = 'student123';
+
+        // ============================================================
+        // 4. Canvas Setup
+        // ============================================================
+        const canvas = document.getElementById('drawing-layer');
+        const ctx = canvas.getContext('2d');
+        let drawing = false;
+        let drawHistory = [];
+        let historyIndex = -1;
+        let brushSize = 'medium';
+        let currentShape = 'rectangle';
+        let isTextMode = false;
+
+        // ============================================================
+        // 5. State Variables
+        // ============================================================
+        let userRole = null;
+        let isBoardLockedByTeacher = false;
+        let isCamOn = true;
+        let isAudioOn = true;
+        let isMirrorOn = true;
+        let isLowLightOn = false;
+        let currentZoomScale = 1;
+        let toolMode = 'write';
+        let tipStyle = 'chalk';
+        let activeColor = '#ffffff';
+        let pdfDoc = null;
+        let pageNum = 1;
+        let students = {};
+        let chatMessages = [];
+        let isMathToolsVisible = false;
+        let isShapeToolsVisible = false;
+        let isRightSidebarVisible = true;
+        let timerInterval = null;
+        let timerSeconds = 0;
+        let isTimerRunning = false;
+        let userName = '';
+
+        // ============================================================
+        // 6. LOGIN
+        // ============================================================
+        function loginAs(role) {
+            const errorMsg = document.getElementById('error-msg');
+
+            if (role === 'teacher') {
+                const password = document.getElementById('teacher-password').value.trim();
+                if (password !== TEACHER_PASSWORD) {
+                    errorMsg.textContent = 'Incorrect Teacher password';
+                    errorMsg.style.color = '#ff6b6b';
+                    return;
+                }
+            } else if (role === 'student') {
+                const password = document.getElementById('student-password').value.trim();
+                if (password !== STUDENT_PASSWORD) {
+                    errorMsg.textContent = 'Incorrect Student password';
+                    errorMsg.style.color = '#ff6b6b';
+                    return;
+                }
+            }
+
+            errorMsg.textContent = '';
+            userRole = role;
+            document.getElementById('role-selector').style.display = 'none';
+
+            if (userRole === 'teacher') {
+                document.getElementById('teacher-tools').style.display = 'flex';
+                document.getElementById('teacher-settings').style.display = 'flex';
+            }
+
+            document.getElementById('settings-role').textContent = role.charAt(0).toUpperCase() + role.slice(1);
+
+            // Set default name
+            userName = role.charAt(0).toUpperCase() + role.slice(1);
+            document.getElementById('settings-name').value = userName;
+
+            setTimeout(resizeCanvas, 300);
+            socket.emit('register-role', role);
+            socket.emit('set-name', userName);
+            startCamera();
+            listCameras();
+
+            // Add welcome message
+            addChatMessage({ role: 'system', text: `${userName} joined as ${role}` });
+        }
+
+        // ============================================================
+        // 7. Name Update
+        // ============================================================
+        function updateName() {
+            const nameInput = document.getElementById('settings-name');
+            userName = nameInput.value.trim() || 'User';
+            socket.emit('set-name', userName);
+            document.querySelector('#local-box .video-label').textContent = userName;
+            addChatMessage({ role: 'system', text: `${userName} updated their name` });
+        }
+
+        // ============================================================
+        // 8. Camera & WebRTC
+        // ============================================================
+        let localStream;
+        let peers = {};
+        let cameraDevices = [];
+        let currentResolution = '640x480';
+
+        const config = {
+            iceServers: [
+                { urls: 'stun:stun.l.google.com:19302' },
+                { urls: 'stun:stun1.l.google.com:19302' },
+                { urls: 'stun:stun2.l.google.com:19302' },
+                { urls: 'stun:stun.ekiga.net:3478' },
+                { urls: 'stun:stun.iptel.org:3478' }
+            ]
+        };
+
+        async function startCamera() {
+            try {
+                const [width, height] = currentResolution.split('x').map(Number);
+                localStream = await navigator.mediaDevices.getUserMedia({
+                    video: {
+                        facingMode: 'user',
+                        width: { ideal: width },
+                        height: { ideal: height }
+                    },
+                    audio: {
+                        echoCancellation: true,
+                        noiseSuppression: true
+                    }
+                });
+                document.getElementById('local-video').srcObject = localStream;
+
+                socket.on('signal', async (data) => {
+                    handleSignaling(data.senderId, data.signal);
+                });
+
+                if (userRole === 'student') {
+                    socket.emit('signal', { targetId: 'all', signal: { type: 'join' } });
+                }
+            } catch (err) {
+                console.warn('Camera unavailable:', err);
+                document.getElementById('local-box').innerHTML =
+                    '<div style="color:#5a6a62;font-size:9px;text-align:center;margin-top:35%;">No Camera</div>';
+            }
+        }
+
+        // List available cameras
+        async function listCameras() {
+            try {
+                const devices = await navigator.mediaDevices.enumerateDevices();
+                cameraDevices = devices.filter(d => d.kind === 'videoinput');
+                const select = document.getElementById('camera-select');
+
+                select.innerHTML = '';
+                cameraDevices.forEach((device, index) => {
+                    const option = document.createElement('option');
+                    option.value = device.deviceId;
+                    option.textContent = device.label || `Camera ${index + 1}`;
+                    if (index === 0) option.selected = true;
+                    select.appendChild(option);
+                });
+
+                if (cameraDevices.length === 0) {
+                    select.innerHTML = '<option value="">No cameras found</option>';
+                }
+            } catch (err) {
+                console.error('Error listing cameras:', err);
+            }
+        }
+
+        // Switch camera
+        async function switchCamera() {
+            const select = document.getElementById('camera-select');
+            const deviceId = select.value;
+            if (!deviceId || !localStream) return;
+
+            try {
+                const [width, height] = currentResolution.split('x').map(Number);
+                const newStream = await navigator.mediaDevices.getUserMedia({
+                    video: {
+                        deviceId: { exact: deviceId },
+                        width: { ideal: width },
+                        height: { ideal: height }
+                    },
+                    audio: true
+                });
+
+                // Replace tracks
+                const videoTrack = newStream.getVideoTracks()[0];
+                const audioTrack = newStream.getAudioTracks()[0];
+
+                const oldVideoTrack = localStream.getVideoTracks()[0];
+                const oldAudioTrack = localStream.getAudioTracks()[0];
+
+                if (videoTrack) {
+                    localStream.removeTrack(oldVideoTrack);
+                    localStream.addTrack(videoTrack);
+                }
+                if (audioTrack && oldAudioTrack) {
+                    localStream.removeTrack(oldAudioTrack);
+                    localStream.addTrack(audioTrack);
+                }
+
+                document.getElementById('local-video').srcObject = localStream;
+
+                // Update peers
+                Object.values(peers).forEach(pc => {
+                    const senders = pc.getSenders();
+                    senders.forEach(sender => {
+                        if (sender.track?.kind === 'video') {
+                            sender.replaceTrack(videoTrack);
+                        }
+                        if (sender.track?.kind === 'audio' && audioTrack) {
+                            sender.replaceTrack(audioTrack);
+                        }
+                    });
+                });
+
+                addChatMessage({ role: 'system', text: '📷 Camera switched' });
+            } catch (err) {
+                console.error('Error switching camera:', err);
+            }
+        }
+
+        // Change resolution
+        function changeResolution() {
+            const select = document.getElementById('resolution-select');
+            currentResolution = select.value;
+            restartCamera();
+        }
+
+        // Restart camera with new settings
+        async function restartCamera() {
+            if (!localStream) return;
+
+            try {
+                const [width, height] = currentResolution.split('x').map(Number);
+                localStream.getTracks().forEach(track => track.stop());
+
+                const newStream = await navigator.mediaDevices.getUserMedia({
+                    video: {
+                        width: { ideal: width },
+                        height: { ideal: height },
+                        facingMode: 'user'
+                    },
+                    audio: {
+                        echoCancellation: true,
+                        noiseSuppression: true
+                    }
+                });
+
+                localStream = newStream;
+                document.getElementById('local-video').srcObject = localStream;
+
+                // Update peers
+                Object.values(peers).forEach(pc => {
+                    localStream.getTracks().forEach(track => {
+                        const sender = pc.getSenders().find(s => s.track?.kind === track.kind);
+                        if (sender) {
+                            sender.replaceTrack(track);
+                        } else {
+                            pc.addTrack(track, localStream);
+                        }
+                    });
+                });
+
+                addChatMessage({ role: 'system', text: `📷 Resolution changed to ${currentResolution}` });
+            } catch (err) {
+                console.error('Error restarting camera:', err);
+            }
+        }
+
+        // Toggle mirror
+        function toggleMirror() {
+            isMirrorOn = !isMirrorOn;
+            const video = document.getElementById('local-video');
+            if (isMirrorOn) {
+                video.classList.add('mirror');
+            } else {
+                video.classList.remove('mirror');
+            }
+        }
+
+        // Toggle low light mode
+        function toggleLowLight() {
+            isLowLightOn = !isLowLightOn;
+            const container = document.getElementById('local-box');
+            if (isLowLightOn) {
+                container.style.filter = 'brightness(1.3) contrast(1.1)';
+            } else {
+                container.style.filter = 'none';
+            }
+        }
+
+        // Change virtual background
+        function changeVirtualBg() {
+            const color = document.getElementById('bg-color').value;
+            const container = document.getElementById('whiteboard-container');
+            container.style.background = color;
+        }
+
+        // Take screenshot
+        function takeScreenshot() {
+            const video = document.getElementById('local-video');
+            if (!video || !video.videoWidth) return;
+
+            const canvas = document.createElement('canvas');
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            const ctx = canvas.getContext('2d');
+
+            if (isMirrorOn) {
+                ctx.scale(-1, 1);
+                ctx.drawImage(video, -canvas.width, 0, canvas.width, canvas.height);
+            } else {
+                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            }
+
+            const link = document.createElement('a');
+            link.download = `snapshot-${Date.now()}.png`;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+
+            addChatMessage({ role: 'system', text: '📸 Screenshot taken' });
+        }
+
+        function toggleLocalCamera() {
+            if (!localStream) return;
+            isCamOn = !isCamOn;
+            localStream.getVideoTracks().forEach(track => track.enabled = isCamOn);
+            const toggles = document.querySelectorAll('.toggle-switch');
+            toggles.forEach(t => t.classList.toggle('active', isCamOn));
+        }
+
+        function toggleAudio() {
+            if (!localStream) return;
+            isAudioOn = !isAudioOn;
+            localStream.getAudioTracks().forEach(track => track.enabled = isAudioOn);
+        }
+
+        async function handleSignaling(senderId, signal) {
+            if (signal.type === 'join') {
+                initiatePeerConnection(senderId, true);
+                return;
+            }
+
+            let pc = peers[senderId];
+            if (!pc) pc = initiatePeerConnection(senderId, false);
+
+            if (signal.sdp) {
+                await pc.setRemoteDescription(new RTCSessionDescription(signal.sdp));
+                if (signal.sdp.type === 'offer') {
+                    const answer = await pc.createAnswer();
+                    await pc.setLocalDescription(answer);
+                    socket.emit('signal', { targetId: senderId, signal: { sdp: pc.localDescription } });
+                }
+            } else if (signal.candidate) {
+                try { await pc.addIceCandidate(new RTCIceCandidate(signal.candidate)); } catch (e) {}
+            }
+        }
+
+        function initiatePeerConnection(peerId, isInitiator) {
+            const pc = new RTCPeerConnection(config);
+            peers[peerId] = pc;
+
+            if (localStream) {
+                localStream.getTracks().forEach(track => pc.addTrack(track, localStream));
+            }
+
+            pc.onicecandidate = (event) => {
+                if (event.candidate) {
+                    socket.emit('signal', { targetId: peerId, signal: { candidate: event.candidate } });
+                }
+            };
+
+            pc.ontrack = (event) => {
+                if (document.getElementById(`vid-${peerId}`)) return;
+                const grid = document.getElementById('video-grid');
+                const box = document.createElement('div');
+                box.className = 'video-box';
+                box.id = `vid-${peerId}`;
+                const video = document.createElement('video');
+                video.srcObject = event.streams[0];
+                video.autoplay = true;
+                video.playsInline = true;
+                const label = document.createElement('div');
+                label.className = 'video-label';
+                label.textContent = 'Student';
+                box.appendChild(video);
+                box.appendChild(label);
+                grid.insertBefore(box, grid.querySelector('.video-size-controls'));
+            };
+
+            if (isInitiator && localStream) {
+                pc.createOffer().then(async (offer) => {
+                    await pc.setLocalDescription(offer);
+                    socket.emit('signal', { targetId: peerId, signal: { sdp: pc.localDescription } });
+                });
+            }
+
+            return pc;
+        }
+
+        socket.on('user-left', (peerId) => {
+            const box = document.getElementById(`vid-${peerId}`);
+            if (box) box.remove();
+            if (peers[peerId]) {
+                peers[peerId].close();
+                delete peers[peerId];
+            }
+            delete students[peerId];
+            updateStudentGrid();
+        });
+
+        // ============================================================
+        // 9. Student Tracking
+        // ============================================================
+        socket.on('student-joined', (data) => {
+            students[data.id] = data;
+            updateStudentGrid();
+            updateStudentCount();
+            addChatMessage({ role: 'system', text: `👤 ${data.name || 'Student'} joined` });
+        });
+
+        socket.on('student-list', (list) => {
+            students = list;
+            updateStudentGrid();
+            updateStudentCount();
+        });
+
+        socket.on('name-updated', (data) => {
+            if (students[data.id]) {
+                students[data.id].name = data.name;
+                updateStudentGrid();
+            }
+        });
+
+        // ============================================================
+        // 10. Attendance
+        // ============================================================
+        let attendance = {};
+
+        function takeAttendance() {
+            if (userRole !== 'teacher') return;
+            const now = new Date().toLocaleTimeString();
+            const count = Object.keys(students).length;
+            attendance = { time: now, count: count, students: Object.keys(students) };
+            addChatMessage({ role: 'system', text: `📋 Attendance taken: ${count} students present at ${now}` });
+
+            // Mark all students as present
+            Object.values(students).forEach(s => {
+                s.present = true;
+            });
+            updateStudentGrid();
+        }
+
+        // ============================================================
+        // 11. Breakout Rooms
+        // ============================================================
+        function startBreakoutRooms() {
+            if (userRole !== 'teacher') return;
+            const roomCount = prompt('How many breakout rooms? (2-5)', '3');
+            if (!roomCount) return;
+
+            const numRooms = parseInt(roomCount);
+            if (numRooms < 2 || numRooms > 5) {
+                alert('Please enter 2-5 rooms');
+                return;
+            }
+
+            const studentIds = Object.keys(students);
+            const studentsPerRoom = Math.floor(studentIds.length / numRooms);
+            const rooms = {};
+
+            for (let i = 0; i < numRooms; i++) {
+                rooms[`Room ${i + 1}`] = [];
+            }
+
+            studentIds.forEach((id, index) => {
+                const roomIndex = index % numRooms;
+                rooms[`Room ${roomIndex + 1}`].push(students[id]?.name || 'Student');
+            });
+
+            let message = '🚪 Breakout Rooms Created:\n';
+            Object.entries(rooms).forEach(([room, members]) => {
+                message += `\n${room}: ${members.join(', ') || 'Empty'}`;
+            });
+
+            addChatMessage({ role: 'system', text: message });
+            alert(message);
+        }
+
+        // ============================================================
+        // 12. Share Screen
+        // ============================================================
+        async function shareScreen() {
+            try {
+                const screenStream = await navigator.mediaDevices.getDisplayMedia({
+                    video: true,
+                    audio: true
+                });
+
+                // Replace video track with screen
+                const videoTrack = screenStream.getVideoTracks()[0];
+                const audioTrack = screenStream.getAudioTracks()[0];
+
+                if (videoTrack) {
+                    const oldVideoTrack = localStream.getVideoTracks()[0];
+                    localStream.removeTrack(oldVideoTrack);
+                    localStream.addTrack(videoTrack);
+                    document.getElementById('local-video').srcObject = localStream;
+
+                    // Update peers
+                    Object.values(peers).forEach(pc => {
+                        const sender = pc.getSenders().find(s => s.track?.kind === 'video');
+                        if (sender) {
+                            sender.replaceTrack(videoTrack);
+                        }
+                    });
+
+                    addChatMessage({ role: 'system', text: '🖥️ Screen sharing started' });
+
+                    // Stop sharing when user ends it
+                    videoTrack.onended = () => {
+                        restartCamera();
+                        addChatMessage({ role: 'system', text: '🖥️ Screen sharing stopped' });
+                    };
+                }
+            } catch (err) {
+                console.error('Screen sharing error:', err);
+            }
+        }
+
+        // ============================================================
+        // 13. Raise Hand
+        // ============================================================
+        function raiseHand() {
+            if (userRole === 'student') {
+                socket.emit('raise-hand', { id: socket.id, name: userName });
+                addChatMessage({ role: 'system', text: `✋ ${userName} raised their hand` });
+            } else {
+                addChatMessage({ role: 'system', text: '💡 Only students can raise hands' });
+            }
+        }
+
+        socket.on('hand-raised', (data) => {
+            if (students[data.id]) {
+                students[data.id].handRaised = true;
+                students[data.id].name = data.name || students[data.id].name;
+                updateStudentGrid();
+                if (userRole === 'teacher') {
+                    addChatMessage({ role: 'system', text: `✋ ${students[data.id].name} raised their hand` });
+                }
+            }
+        });
+
+        function lowerAllHands() {
+            if (userRole === 'teacher') {
+                socket.emit('lower-all-hands');
+                addChatMessage({ role: 'system', text: '👋 All hands lowered by teacher' });
+            }
+        }
+
+        socket.on('lower-all-hands', () => {
+            Object.values(students).forEach(s => s.handRaised = false);
+            updateStudentGrid();
+        });
+
+        // ============================================================
+        // 14. Mute All
+        // ============================================================
+        function muteAllStudents() {
+            if (userRole === 'teacher') {
+                socket.emit('mute-all');
+                addChatMessage({ role: 'system', text: '🔇 All students muted by teacher' });
+            }
+        }
+
+        socket.on('mute-all', () => {
+            if (localStream) {
+                localStream.getAudioTracks().forEach(track => track.enabled = false);
+                isAudioOn = false;
+                document.querySelectorAll('.toggle-switch').forEach(t => t.classList.remove('active'));
+                addChatMessage({ role: 'system', text: '🔇 You have been muted by teacher' });
+            }
+        });
+
+        // ============================================================
+        // 15. Reactions
+        // ============================================================
+        function sendReaction(emoji) {
+            socket.emit('reaction', { emoji: emoji, sender: socket.id, name: userName });
+        }
+
+        socket.on('reaction', (data) => {
+            const container = document.getElementById('chat-messages-full');
+            const msg = document.createElement('div');
+            msg.className = 'msg system';
+            msg.textContent = `${data.emoji} ${data.name || 'Someone'}`;
+            container.appendChild(msg);
+            container.scrollTop = container.scrollHeight;
+            setTimeout(() => { msg.remove(); }, 3000);
+        });
+
+        // ============================================================
+        // 16. Timer
+        // ============================================================
+        function showTimer() {
+            const container = document.getElementById('timer-container');
+            container.classList.toggle('show');
+        }
+
+        function hideTimer() {
+            document.getElementById('timer-container').classList.remove('show');
+        }
+
+        function startTimer() {
+            if (isTimerRunning) return;
+            isTimerRunning = true;
+            timerInterval = setInterval(() => {
+                timerSeconds++;
+                updateTimerDisplay();
+            }, 1000);
+        }
+
+        function pauseTimer() {
+            isTimerRunning = false;
+            clearInterval(timerInterval);
+        }
+
+        function resetTimer() {
+            pauseTimer();
+            timerSeconds = 0;
+            updateTimerDisplay();
+        }
+
+        function updateTimerDisplay() {
+            const mins = String(Math.floor(timerSeconds / 60)).padStart(2, '0');
+            const secs = String(timerSeconds % 60).padStart(2, '0');
+            document.getElementById('timer-display').textContent = `${mins}:${secs}`;
+        }
+
+        // ============================================================
+        // 17. Poll / Quiz
+        // ============================================================
+        let pollData = null;
+        let pollVotes = {};
+
+        function createPoll() {
+            if (userRole !== 'teacher') {
+                addChatMessage({ role: 'system', text: 'Only teachers can create polls' });
+                return;
+            }
+
+            const question = prompt('Enter poll question:');
+            if (!question) return;
+
+            const optionsInput = prompt('Enter options separated by commas:');
+            if (!optionsInput) return;
+
+            const options = optionsInput.split(',').map(o => o.trim()).filter(o => o);
+
+            pollData = { question, options };
+            pollVotes = {};
+            options.forEach(opt => pollVotes[opt] = 0);
+
+            showPoll();
+            socket.emit('poll-created', pollData);
+            addChatMessage({ role: 'system', text: `📊 Poll created: ${question}` });
+        }
+
+        socket.on('poll-created', (data) => {
+            pollData = data;
+            pollVotes = {};
+            data.options.forEach(opt => pollVotes[opt] = 0);
+            showPoll();
+        });
+
+        function showPoll() {
+            if (!pollData) return;
+
+            const container = document.getElementById('poll-container');
+            document.getElementById('poll-question').textContent = pollData.question;
+
+            const optionsDiv = document.getElementById('poll-options');
+            optionsDiv.innerHTML = '';
+
+            pollData.options.forEach(opt => {
+                const div = document.createElement('div');
+                div.className = 'poll-option';
+                div.innerHTML = `
+                            <span>${opt}</span>
+                            <span class="vote-count" id="vote-${opt}">0 votes</span>
+                        `;
+                div.onclick = () => votePoll(opt);
+                optionsDiv.appendChild(div);
+            });
+
+            container.classList.add('show');
+            updatePollResults();
+        }
+
+        function votePoll(option) {
+            if (!pollData) return;
+            socket.emit('poll-vote', { option, voter: socket.id });
+            addChatMessage({ role: 'system', text: `📊 Voted: ${option}` });
+        }
+
+        socket.on('poll-vote', (data) => {
+            if (pollVotes[data.option] !== undefined) {
+                pollVotes[data.option]++;
+                updatePollResults();
+            }
+        });
+
+        function updatePollResults() {
+            const total = Object.values(pollVotes).reduce((a, b) => a + b, 0);
+
+            pollData?.options.forEach(opt => {
+                const countEl = document.getElementById(`vote-${opt}`);
+                if (countEl) {
+                    const count = pollVotes[opt] || 0;
+                    const percent = total > 0 ? Math.round((count / total) * 100) : 0;
+                    countEl.textContent = `${count} votes (${percent}%)`;
+                }
+            });
+
+            document.getElementById('poll-result').textContent =
+                total > 0 ? `Total votes: ${total}` : 'No votes yet';
+        }
+
+        function closePoll() {
+            document.getElementById('poll-container').classList.remove('show');
+        }
+
+        // ============================================================
+        // 18. Math Tools
+        // ============================================================
+        function toggleMathTools() {
+            isMathToolsVisible = !isMathToolsVisible;
+            document.getElementById('math-tools-overlay').classList.toggle('show', isMathToolsVisible);
+            document.getElementById('shape-tools-overlay').classList.remove('show');
+        }
+
+        function insertMathSymbol(symbol) {
+            const rect = canvas.getBoundingClientRect();
+            const x = rect.width / 2;
+            const y = rect.height / 2;
+            const size = brushSize === 'small' ? 32 : brushSize === 'large' ? 64 : 48;
+            ctx.font = `${size}px serif`;
+            ctx.fillStyle = activeColor;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(symbol, x, y);
+            socket.emit('math-symbol', { symbol, x, y, color: activeColor, size });
+            addChatMessage({ role: 'system', text: `📐 Inserted ${symbol}` });
+        }
+
+        socket.on('math-symbol', (data) => {
+            ctx.font = `${data.size || 48}px serif`;
+            ctx.fillStyle = data.color;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(data.symbol, data.x, data.y);
+        });
+
+        // ============================================================
+        // 19. Shape Tools
+        // ============================================================
+        function setShape(shape) {
+            currentShape = shape;
+            toolMode = 'shape';
+            document.getElementById('shape-tools-overlay').classList.add('show');
+            document.getElementById('math-tools-overlay').classList.remove('show');
+            addChatMessage({ role: 'system', text: `📐 Shape tool: ${shape}` });
+        }
+
+        // ============================================================
+        // 20. Video Grid Resize
+        // ============================================================
+        function resizeVideoGrid(size) {
+            const grid = document.getElementById('video-grid');
+            const sizes = {
+                small: { width: '120px' },
+                medium: { width: '200px' },
+                large: { width: '300px' }
+            };
+            if (sizes[size]) {
+                grid.style.width = sizes[size].width;
+            }
+        }
+
+        // Make video grid resizable with drag
+        (function() {
+            const grid = document.getElementById('video-grid');
+            const handle = document.getElementById('video-grid-resize-handle');
+            let isResizing = false;
+            let startX, startY, startWidth, startHeight;
+
+            handle.addEventListener('mousedown', (e) => {
+                isResizing = true;
+                startX = e.clientX;
+                startY = e.clientY;
+                startWidth = grid.offsetWidth;
+                startHeight = grid.offsetHeight;
+                document.addEventListener('mousemove', onResize);
+                document.addEventListener('mouseup', stopResize);
+                e.preventDefault();
+            });
+
+            function onResize(e) {
+                if (!isResizing) return;
+                const newWidth = Math.max(80, Math.min(400, startWidth + (e.clientX - startX)));
+                const newHeight = Math.max(60, Math.min(400, startHeight + (e.clientY - startY)));
+                grid.style.width = newWidth + 'px';
+                grid.style.height = newHeight + 'px';
+            }
+
+            function stopResize() {
+                isResizing = false;
+                document.removeEventListener('mousemove', onResize);
+                document.removeEventListener('mouseup', stopResize);
+            }
+        })();
+
+        // ============================================================
+        // 21. Canvas Resize
+        // ============================================================
+        function resizeCanvas() {
+            const container = canvas.parentElement;
+            canvas.width = container.clientWidth;
+            canvas.height = container.clientHeight;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+        }
+        window.addEventListener('resize', () => setTimeout(resizeCanvas, 200));
+        setTimeout(resizeCanvas, 400);
+
+        // ============================================================
+        // 22. Drawing Functions
+        // ============================================================
+        function getCoordinates(e) {
+            const rect = canvas.getBoundingClientRect();
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+            return { x: clientX - rect.left, y: clientY - rect.top };
+        }
+
+        function startDrawing(e) {
+            if (userRole === 'student' && isBoardLockedByTeacher) {
+                addChatMessage({ role: 'system', text: '🔒 Board is locked by teacher!' });
+                return;
+            }
+
+            if (toolMode === 'text') {
+                const pos = getCoordinates(e);
+                const text = prompt('Enter text:');
+                if (text) {
+                    const size = brushSize === 'small' ? 16 : brushSize === 'large' ? 36 : 24;
+                    ctx.font = `${size}px sans-serif`;
+                    ctx.fillStyle = activeColor;
+                    ctx.textAlign = 'left';
+                    ctx.textBaseline = 'top';
+                    ctx.fillText(text, pos.x, pos.y);
+                    socket.emit('draw-text', { text, x: pos.x, y: pos.y, color: activeColor, size });
+                    addChatMessage({ role: 'system', text: `📝 Text: ${text}` });
+                }
+                return;
+            }
+
+            drawing = true;
+            ctx.beginPath();
+            const pos = getCoordinates(e);
+            ctx.moveTo(pos.x, pos.y);
+
+            if (toolMode === 'shape') {
+                // Store start position for shape
+                ctx._startX = pos.x;
+                ctx._startY = pos.y;
+            } else {
+                socket.emit('drawing', { type: 'start', x: pos.x, y: pos.y, toolMode, tipStyle, color: activeColor,
+                    brushSize });
+            }
+        }
+
+        function draw(e) {
+            if (!drawing || (userRole === 'student' && isBoardLockedByTeacher)) return;
+            e.preventDefault();
+            const pos = getCoordinates(e);
+
+            if (toolMode === 'shape') {
+                // Draw shape preview (just show on local canvas)
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                // Redraw history
+                drawHistory.forEach((data, index) => {
+                    if (index <= historyIndex) {
+                        // Replay drawing
+                    }
+                });
+                // Draw shape preview
+                drawShapePreview(ctx._startX, ctx._startY, pos.x, pos.y);
+                return;
+            }
+
+            executeDraw(pos.x, pos.y, toolMode, tipStyle, activeColor);
+            socket.emit('drawing', { type: 'move', x: pos.x, y: pos.y, toolMode, tipStyle, color: activeColor,
+                brushSize });
+        }
+
+        function stopDrawing(e) {
+            if (!drawing) return;
+
+            if (toolMode === 'shape' && ctx._startX !== undefined) {
+                const endPos = getCoordinates(e);
+                const shapeData = {
+                    type: 'shape',
+                    shape: currentShape,
+                    x1: ctx._startX,
+                    y1: ctx._startY,
+                    x2: endPos.x,
+                    y2: endPos.y,
+                    color: activeColor,
+                    brushSize: brushSize
+                };
+                drawShape(shapeData);
+                socket.emit('draw-shape', shapeData);
+                ctx._startX = undefined;
+                ctx._startY = undefined;
+                // Redraw properly
+                redrawCanvas();
+                drawing = false;
+                return;
+            }
+
+            drawing = false;
+            // Save to history
+            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            drawHistory.push(imageData);
+            historyIndex = drawHistory.length - 1;
+        }
+
+        function drawShapePreview(x1, y1, x2, y2) {
+            ctx.save();
+            ctx.strokeStyle = activeColor;
+            const size = brushSize === 'small' ? 2 : brushSize === 'large' ? 6 : 4;
+            ctx.lineWidth = size;
+
+            switch (currentShape) {
+                case 'rectangle':
+                    ctx.strokeRect(Math.min(x1, x2), Math.min(y1, y2), Math.abs(x2 - x1), Math.abs(y2 - y1));
+                    break;
+                case 'circle':
+                    const radius = Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
+                    ctx.beginPath();
+                    ctx.arc(x1, y1, radius, 0, Math.PI * 2);
+                    ctx.stroke();
+                    break;
+                case 'line':
+                    ctx.beginPath();
+                    ctx.moveTo(x1, y1);
+                    ctx.lineTo(x2, y2);
+                    ctx.stroke();
+                    break;
+                case 'arrow':
+                    drawArrow(ctx, x1, y1, x2, y2);
+                    break;
+                case 'triangle':
+                    ctx.beginPath();
+                    ctx.moveTo(x1, y1);
+                    ctx.lineTo(x2, y2);
+                    ctx.lineTo(x1 - (x2 - x1), y2);
+                    ctx.closePath();
+                    ctx.stroke();
+                    break;
+            }
+            ctx.restore();
+        }
+
+        function drawShape(data) {
+            ctx.save();
+            ctx.strokeStyle = data.color;
+            const size = data.brushSize === 'small' ? 2 : data.brushSize === 'large' ? 6 : 4;
+            ctx.lineWidth = size;
+
+            switch (data.shape) {
+                case 'rectangle':
+                    ctx.strokeRect(Math.min(data.x1, data.x2), Math.min(data.y1, data.y2),
+                        Math.abs(data.x2 - data.x1), Math.abs(data.y2 - data.y1));
+                    break;
+                case 'circle':
+                    const radius = Math.sqrt(Math.pow(data.x2 - data.x1, 2) + Math.pow(data.y2 - data.y1, 2));
+                    ctx.beginPath();
+                    ctx.arc(data.x1, data.y1, radius, 0, Math.PI * 2);
+                    ctx.stroke();
+                    break;
+                case 'line':
+                    ctx.beginPath();
+                    ctx.moveTo(data.x1, data.y1);
+                    ctx.lineTo(data.x2, data.y2);
+                    ctx.stroke();
+                    break;
+                case 'arrow':
+                    drawArrow(ctx, data.x1, data.y1, data.x2, data.y2);
+                    break;
+                case 'triangle':
+                    ctx.beginPath();
+                    ctx.moveTo(data.x1, data.y1);
+                    ctx.lineTo(data.x2, data.y2);
+                    ctx.lineTo(data.x1 - (data.x2 - data.x1), data.y2);
+                    ctx.closePath();
+                    ctx.stroke();
+                    break;
+            }
+            ctx.restore();
+        }
+
+        function drawArrow(ctx, x1, y1, x2, y2) {
+            const angle = Math.atan2(y2 - y1, x2 - x1);
+            const headLen = 12;
+
+            ctx.beginPath();
+            ctx.moveTo(x1, y1);
+            ctx.lineTo(x2, y2);
+            ctx.stroke();
+
+            // Draw arrow head
+            ctx.beginPath();
+            ctx.moveTo(x2, y2);
+            ctx.lineTo(x2 - headLen * Math.cos(angle - Math.PI / 6), y2 - headLen * Math.sin(angle - Math.PI / 6));
+            ctx.moveTo(x2, y2);
+            ctx.lineTo(x2 - headLen * Math.cos(angle + Math.PI / 6), y2 - headLen * Math.sin(angle + Math.PI / 6));
+            ctx.stroke();
+        }
+
+        socket.on('draw-shape', (data) => {
+            drawShape(data);
+        });
+
+        socket.on('draw-text', (data) => {
+            ctx.font = `${data.size || 24}px sans-serif`;
+            ctx.fillStyle = data.color;
+            ctx.textAlign = 'left';
+            ctx.textBaseline = 'top';
+            ctx.fillText(data.text, data.x, data.y);
+        });
+
+        function executeDraw(x, y, mode, style, colorHex) {
+            if (mode === 'write') {
+                ctx.globalCompositeOperation = 'source-over';
+                ctx.strokeStyle = colorHex;
+                const size = brushSize === 'small' ? 2 : brushSize === 'large' ? 6 : 4;
+                ctx.lineWidth = size;
+                if (style === 'chalk') {
+                    ctx.lineWidth = size + 1;
+                    ctx.shadowBlur = 2;
+                    ctx.shadowColor = colorHex;
+                } else {
+                    ctx.shadowBlur = 0;
+                }
+            } else if (mode === 'erase') {
+                ctx.globalCompositeOperation = 'destination-out';
+                ctx.lineWidth = 35;
+                ctx.shadowBlur = 0;
+            } else {
+                return;
+            }
+            ctx.lineTo(x, y);
+            ctx.stroke();
+        }
+
+        canvas.addEventListener('touchstart', startDrawing, { passive: false });
+        canvas.addEventListener('touchmove', draw, { passive: false });
+        canvas.addEventListener('touchend', stopDrawing);
+        canvas.addEventListener('mousedown', startDrawing);
+        canvas.addEventListener('mousemove', draw);
+        canvas.addEventListener('mouseup', stopDrawing);
+
+        socket.on('drawing', (data) => {
+            if (data.type === 'start') {
+                ctx.beginPath();
+                ctx.moveTo(data.x, data.y);
+            } else if (data.type === 'move') {
+                const prevBrushSize = brushSize;
+                brushSize = data.brushSize || 'medium';
+                executeDraw(data.x, data.y, data.toolMode, data.tipStyle, data.color);
+                brushSize = prevBrushSize;
+            }
+        });
+
+        socket.on('history-sync', (history) => {
+            history.forEach((data) => {
+                if (data.type === 'start') {
+                    ctx.beginPath();
+                    ctx.moveTo(data.x, data.y);
+                } else if (data.type === 'move') {
+                    executeDraw(data.x, data.y, data.toolMode, data.tipStyle, data.color);
+                } else if (data.type === 'shape') {
+                    drawShape(data);
+                }
+            });
+            // Save to history
+            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            drawHistory.push(imageData);
+            historyIndex = drawHistory.length - 1;
+        });
+
+        // ============================================================
+        // 23. Undo / Redo
+        // ============================================================
+        function undoDraw() {
+            if (historyIndex > 0) {
+                historyIndex--;
+                redrawCanvas();
+                socket.emit('undo-draw');
+            }
+        }
+
+        function redoDraw() {
+            if (historyIndex < drawHistory.length - 1) {
+                historyIndex++;
+                redrawCanvas();
+                socket.emit('redo-draw');
+            }
+        }
+
+        function redrawCanvas() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            for (let i = 0; i <= historyIndex; i++) {
+                ctx.putImageData(drawHistory[i], 0, 0);
+            }
+        }
+
+        socket.on('undo-draw', () => {
+            if (historyIndex > 0) {
+                historyIndex--;
+                redrawCanvas();
+            }
+        });
+
+        socket.on('redo-draw', () => {
+            if (historyIndex < drawHistory.length - 1) {
+                historyIndex++;
+                redrawCanvas();
+            }
+        });
+
+        // ============================================================
+        // 24. Toolbar Controls
+        // ============================================================
+        function setTipStyle(style) {
+            toolMode = 'write';
+            tipStyle = style;
+            document.querySelectorAll('#whiteboard-toolbar .wb-btn').forEach(b => b.classList.remove('active'));
+            const btns = document.querySelectorAll('#whiteboard-toolbar .wb-btn');
+            if (style === 'chalk') btns[0].classList.add('active');
+            else btns[1].classList.add('active');
+            document.querySelectorAll('#whiteboard-toolbar .wb-btn')[2].classList.remove('active');
+            document.querySelectorAll('#whiteboard-toolbar .wb-btn')[3].classList.remove('active');
+            document.querySelectorAll('#whiteboard-toolbar .wb-btn')[4].classList.remove('active');
+            document.getElementById('math-tools-overlay').classList.remove('show');
+            document.getElementById('shape-tools-overlay').classList.remove('show');
+        }
+
+        function setMode(mode) {
+            toolMode = mode;
+            document.querySelectorAll('#whiteboard-toolbar .wb-btn').forEach(b => b.classList.remove('active'));
+            const btns = document.querySelectorAll('#whiteboard-toolbar .wb-btn');
+            if (mode === 'erase') btns[2].classList.add('active');
+            else if (mode === 'shape') btns[3].classList.add('active');
+            else if (mode === 'text') btns[4].classList.add('active');
+
+            if (mode === 'shape') {
+                document.getElementById('shape-tools-overlay').classList.add('show');
+            } else {
+                document.getElementById('shape-tools-overlay').classList.remove('show');
+            }
+            document.getElementById('math-tools-overlay').classList.remove('show');
+        }
+
+        function setBrushSize(size) {
+            brushSize = size;
+            document.querySelectorAll('#whiteboard-toolbar .tool-group')[2].querySelectorAll('.wb-btn').forEach(b => b
+                .classList.remove('active'));
+            const btns = document.querySelectorAll('#whiteboard-toolbar .tool-group')[2].querySelectorAll('.wb-btn');
+            if (size === 'small') btns[0].classList.add('active');
+            else if (size === 'medium') btns[1].classList.add('active');
+            else if (size === 'large') btns[2].classList.add('active');
+        }
+
+        function changeColor(hex, element) {
+            activeColor = hex;
+            document.querySelectorAll('.color-dot-sm').forEach(d => d.classList.remove('selected'));
+            if (element) {
+                const dot = element.querySelector('.color-dot-sm') || element;
+                dot.classList.add('selected');
+            }
+        }
+
+        // ============================================================
+        // 25. Save Board
+        // ============================================================
+        function saveBoard() {
+            const link = document.createElement('a');
+            link.download = `board-${new Date().toISOString().slice(0,10)}.png`;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+            addChatMessage({ role: 'system', text: '💾 Board saved!' });
+        }
+
+        // ============================================================
+        // 26. Clear Board
+        // ============================================================
+        function clearCanvas(isLocal) {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            document.getElementById('media-layer').innerHTML = '';
+            document.getElementById('page-num-indicator').textContent = '';
+            pdfDoc = null;
+            resetZoom();
+            if (isLocal) {
+                socket.emit('clearBoard');
+                socket.emit('bg-sync', '');
+                drawHistory = [];
+                historyIndex = -1;
+            }
+        }
+
+        socket.on('clearBoard', () => {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            document.getElementById('media-layer').innerHTML = '';
+            document.getElementById('page-num-indicator').textContent = '';
+            pdfDoc = null;
+            resetZoom();
+            drawHistory = [];
+            historyIndex = -1;
+        });
+
+        // ============================================================
+        // 27. Lock / Unlock
+        // ============================================================
+        function toggleStudentWriting() {
+            const btn = document.getElementById('lock-btn');
+            const isLocked = btn.textContent.includes('Lock');
+            btn.textContent = isLocked ? '🔓 Unlock' : '🔒 Lock';
+            socket.emit('toggle-lock', isLocked);
+            const toggle = document.querySelector('#teacher-settings .toggle-switch');
+            if (toggle) toggle.classList.toggle('active', isLocked);
+            addChatMessage({ role: 'system', text: isLocked ? '🔒 Board locked' : '🔓 Board unlocked' });
+        }
+
+        socket.on('lock-state', (isLocked) => {
+            isBoardLockedByTeacher = isLocked;
+            if (userRole === 'student') {
+                document.getElementById('lock-indicator').style.display = isLocked ? 'block' : 'none';
+                if (isLocked) {
+                    addChatMessage({ role: 'system', text: '🔒 Board is locked by teacher' });
+                } else {
+                    addChatMessage({ role: 'system', text: '🔓 Board is now unlocked' });
+                }
+            }
+            if (userRole === 'teacher') {
+                const btn = document.getElementById('lock-btn');
+                btn.textContent = isLocked ? '🔓 Unlock' : '🔒 Lock';
+                const toggle = document.querySelector('#teacher-settings .toggle-switch');
+                if (toggle) toggle.classList.toggle('active', isLocked);
+            }
+        });
+
+        // ============================================================
+        // 28. Zoom
+        // ============================================================
+        function adjustZoom(amount) {
+            currentZoomScale = Math.max(0.5, Math.min(4, currentZoomScale + amount));
+            applyZoomState(true);
+        }
+
+        function resetZoom() {
+            currentZoomScale = 1;
+            applyZoomState(true);
+        }
+
+        function applyZoomState(isLocal) {
+            document.getElementById('zoom-wrapper').style.transform = `scale(${currentZoomScale})`;
+            if (isLocal) socket.emit('zoom-sync', currentZoomScale);
+        }
+
+        socket.on('zoom-sync', (scale) => {
+            currentZoomScale = scale;
+            applyZoomState(false);
+        });
+
+        // ============================================================
+        // 29. Media
+        // ============================================================
+        function loadMedia(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const imgData = e.target.result;
+                document.getElementById('media-layer').innerHTML = `<img src="${imgData}">`;
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                socket.emit('bg-sync', imgData);
+                addMediaItem('🖼️', file.name);
+                addChatMessage({ role: 'system', text: `🖼️ Image shared: ${file.name}` });
+            };
+            reader.readAsDataURL(file);
+            event.target.value = '';
+        }
+
+        function loadPDF(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const typedarray = new Uint8Array(e.target.result);
+                pdfjsLib.getDocument(typedarray).promise.then((pdf) => {
+                    pdfDoc = pdf;
+                    pageNum = 1;
+                    renderPDFPage(pageNum);
+                    addMediaItem('📄', file.name);
+                    addChatMessage({ role: 'system', text: `📄 PDF shared: ${file.name}` });
+                });
+            };
+            reader.readAsArrayBuffer(file);
+            event.target.value = '';
+        }
+
+        function loadFile(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            addMediaItem('📎', file.name);
+            addChatMessage({ role: 'system', text: `📎 File shared: ${file.name}` });
+            event.target.value = '';
+        }
+
+        function renderPDFPage(num) {
+            if (!pdfDoc) return;
+            pdfDoc.getPage(num).then((page) => {
+                const viewport = page.getViewport({ scale: 1.5 });
+                const pdfCanvas = document.createElement('canvas');
+                const pdfContext = pdfCanvas.getContext('2d');
+                pdfCanvas.height = viewport.height;
+                pdfCanvas.width = viewport.width;
+
+                const renderContext = { canvasContext: pdfContext, viewport: viewport };
+                page.render(renderContext).promise.then(() => {
+                    const imgData = pdfCanvas.toDataURL('image/png');
+                    document.getElementById('media-layer').innerHTML = `<img src="${imgData}">`;
+                    document.getElementById('page-num-indicator').textContent =
+                        `Pg: ${num} / ${pdfDoc.numPages}`;
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    socket.emit('bg-sync', imgData);
+                });
+            });
+        }
+
+        function prevPage() {
+            if (pageNum <= 1) return;
+            pageNum--;
+            renderPDFPage(pageNum);
+        }
+
+        function nextPage() {
+            if (!pdfDoc || pageNum >= pdfDoc.numPages) return;
+            pageNum++;
+            renderPDFPage(pageNum);
+        }
+
+        socket.on('bg-sync', (imgSrc) => {
+            if (imgSrc) {
+                document.getElementById('media-layer').innerHTML = `<img src="${imgSrc}">`;
+            } else {
+                document.getElementById('media-layer').innerHTML = '';
+            }
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        });
+
+        function addMediaItem(icon, name) {
+            const grid = document.getElementById('media-grid');
+            const item = document.createElement('div');
+            item.className = 'media-item';
+            item.innerHTML = `
+                        <div class="icon">${icon}</div>
+                        <div class="label">${name.length > 15 ? name.slice(0, 12) + '...' : name}</div>
+                    `;
+            grid.insertBefore(item, grid.firstChild);
+        }
+
+        // ============================================================
+        // 30. Chat
+        // ============================================================
+        function sendChatMessage() {
+            const input = document.getElementById('chat-input-full');
+            const text = input.value.trim();
+            if (!text) return;
+            const data = { role: userRole, text: text, name: userName };
+            socket.emit('chat-message', data);
+            addChatMessage(data);
+            input.value = '';
+        }
+
+        document.getElementById('chat-input-full').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') sendChatMessage();
+        });
+
+        function addChatMessage(data) {
+            const container = document.getElementById('chat-messages-full');
+            const msgEl = document.createElement('div');
+
+            if (data.role === 'system') {
+                msgEl.className = 'msg system';
+                msgEl.textContent = data.text;
+            } else {
+                msgEl.className = `msg ${data.role}`;
+                const sender = document.createElement('div');
+                sender.className = 'sender';
+                const icon = data.role === 'teacher' ? '👨‍🏫' : '👩‍🎓';
+                const name = data.name || (data.role === 'teacher' ? 'Teacher' : 'Student');
+                sender.textContent = `${icon} ${name}`;
+                const text = document.createElement('div');
+                text.textContent = data.text;
+                const time = document.createElement('span');
+                time.className = 'timestamp';
+                time.textContent = new Date().toLocaleTimeString();
+                sender.appendChild(time);
+                msgEl.appendChild(sender);
+                msgEl.appendChild(text);
+            }
+
+            container.appendChild(msgEl);
+            container.scrollTop = container.scrollHeight;
+            chatMessages.push(data);
+            document.getElementById('chat-msg-count').textContent = `${chatMessages.length} messages`;
+            document.getElementById('settings-msg-count').textContent = chatMessages.length;
+        }
+
+        socket.on('chat-message', (data) => {
+            addChatMessage(data);
+        });
+
+        function clearChat() {
+            document.getElementById('chat-messages-full').innerHTML = '<div class="msg system">Chat cleared</div>';
+            chatMessages = [];
+            document.getElementById('chat-msg-count').textContent = '0 messages';
+            document.getElementById('settings-msg-count').textContent = '0';
+        }
+
+        // ============================================================
+        // 31. Web URL
+        // ============================================================
+        function launchWeb() {
+            const urlInput = document.getElementById('web-url-input');
+            let url = urlInput.value.trim();
+            if (!url) {
+                addChatMessage({ role: 'system', text: '⚠️ Please enter a URL' });
+                return;
+            }
+            if (!/^https?:\/\//i.test(url)) url = 'https://' + url;
+            window.open(url, '_blank');
+            addChatMessage({ role: 'system', text: `🌐 Opened: ${url}` });
+        }
+
+        // ============================================================
+        // 32. Tab Switching
+        // ============================================================
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.tab === tabId);
+            });
+
+            document.querySelectorAll('.tab-panel').forEach(panel => {
+                panel.classList.toggle('active', panel.id === `panel-${tabId}`);
+            });
+
+            if (tabId === 'whiteboard') {
+                setTimeout(resizeCanvas, 100);
+            }
+        }
+
+        function toggleTabBar() {
+            const bar = document.getElementById('tab-bar');
+            bar.classList.toggle('hidden');
+            const btn = document.querySelector('.hide-tab');
+            btn.innerHTML = bar.classList.contains('hidden') ?
+                '▶<span class="tooltip">Show Tabs</span>' :
+                '◀<span class="tooltip">Hide Tabs</span>';
+            setTimeout(resizeCanvas, 300);
+        }
+
+        // ============================================================
+        // 33. Right Sidebar
+        // ============================================================
+        function toggleRightSidebar() {
+            const sidebar = document.getElementById('right-sidebar');
+            sidebar.classList.toggle('hidden');
+            isRightSidebarVisible = !isRightSidebarVisible;
+            const btn = document.querySelector('#right-sidebar .sidebar-btn:first-child');
+            if (sidebar.classList.contains('hidden')) {
+                btn.innerHTML = '◀<span class="tooltip">Show Sidebar</span>';
+            } else {
+                btn.innerHTML = '▶<span class="tooltip">Hide Sidebar</span>';
+            }
+        }
+
+        // ============================================================
+        // 34. Virtual Background
+        // ============================================================
+        function toggleVirtualBackground() {
+            const container = document.getElementById('whiteboard-container');
+            const colors = ['#1a3a2a', '#2a1a3a', '#1a2a3a', '#3a2a1a', '#0a0f0d'];
+            const current = container.style.background;
+            const index = colors.indexOf(current);
+            const next = colors[(index + 1) % colors.length];
+            container.style.background = next;
+            document.getElementById('bg-color').value = next;
+            addChatMessage({ role: 'system', text: `🎨 Virtual background changed` });
+        }
+
+        // ============================================================
+        // 35. Fullscreen
+        // ============================================================
+        function toggleFullscreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen();
+            } else {
+                document.exitFullscreen();
+            }
+        }
+
+        // ============================================================
+        // 36. Recording
+        // ============================================================
+        let mediaRecorder;
+        let recordedChunks = [];
+
+        async function toggleRecording() {
+            const recordBtn = document.getElementById('record-btn');
+            if (!mediaRecorder || mediaRecorder.state === 'inactive') {
+                recordedChunks = [];
+                try {
+                    const masterCanvas = document.createElement('canvas');
+                    masterCanvas.width = canvas.width;
+                    masterCanvas.height = canvas.height;
+                    const ctxM = masterCanvas.getContext('2d');
+
+                    const audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    const stream = masterCanvas.captureStream(25);
+                    const audioTrack = audioStream.getAudioTracks()[0];
+                    if (audioTrack) stream.addTrack(audioTrack);
+
+                    function drawFrame() {
+                        if (mediaRecorder && mediaRecorder.state === 'recording') {
+                            ctxM.clearRect(0, 0, masterCanvas.width, masterCanvas.height);
+                            ctxM.fillStyle = '#1a2a22';
+                            ctxM.fillRect(0, 0, masterCanvas.width, masterCanvas.height);
+                            const slide = document.querySelector('#media-layer img');
+                            if (slide) ctxM.drawImage(slide, 0, 0, masterCanvas.width, masterCanvas.height);
+                            ctxM.drawImage(canvas, 0, 0);
+                            requestAnimationFrame(drawFrame);
+                        }
+                    }
+
+                    mediaRecorder = new MediaRecorder(stream, { mimeType: 'video/webm;codecs=vp8,opus' });
+                    mediaRecorder.ondataavailable = (e) => {
+                        if (e.data.size > 0) recordedChunks.push(e.data);
+                    };
+                    mediaRecorder.onstop = () => {
+                        const blob = new Blob(recordedChunks, { type: 'video/webm' });
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = `Class-${new Date().toISOString().slice(0,10)}.webm`;
+                        a.click();
+                        audioStream.getTracks().forEach(track => track.stop());
+                        recordBtn.textContent = '🔴 Rec';
+                        addChatMessage({ role: 'system', text: '⏹️ Recording stopped' });
+                    };
+                    mediaRecorder.start();
+                    drawFrame();
+                    recordBtn.textContent = '⏹️ Stop';
+                    addChatMessage({ role: 'system', text: '🔴 Recording started' });
+                } catch (err) {
+                    alert('Recording error: ' + err.message);
+                }
+            } else {
+                mediaRecorder.stop();
+                document.getElementById('record-btn').textContent = '🔴 Rec';
+            }
+        }
+
+        // ============================================================
+        // 37. Student Grid Update
+        // ============================================================
+        function updateStudentGrid() {
+            const grid = document.getElementById('student-grid');
+            const count = Object.keys(students).length;
+            grid.innerHTML = '';
+
+            if (count === 0) {
+                grid.innerHTML =
+                    '<div style="grid-column:1/-1;text-align:center;color:#4a5a52;padding:30px;font-weight:300;">No students online</div>';
+                return;
+            }
+
+            Object.values(students).forEach((s) => {
+                const card = document.createElement('div');
+                card.className = 'student-card';
+                const avatar = document.createElement('div');
+                avatar.className = 'avatar';
+                avatar.textContent = s.handRaised ? '✋' : '👤';
+                const name = document.createElement('div');
+                name.className = 'name';
+                name.textContent = s.name || 'Student';
+                const status = document.createElement('div');
+                status.className = `status ${s.handRaised ? 'hand-raised' : 'online'}`;
+                status.textContent = s.handRaised ? 'Hand raised' : 'Online';
+                const badge = document.createElement('div');
+                badge.className = 'student-badge';
+                badge.textContent = s.role === 'teacher' ? '👑 Teacher' : '🎒';
+                if (s.role === 'teacher') badge.classList.add('teacher-badge');
+
+                card.appendChild(avatar);
+                card.appendChild(name);
+                card.appendChild(status);
+                card.appendChild(badge);
+                grid.appendChild(card);
+            });
+        }
+
+        function updateStudentCount() {
+            const count = Object.keys(students).length;
+            document.getElementById('student-count').textContent = `${count} online`;
+            document.getElementById('student-count-badge').textContent = count;
+            document.getElementById('settings-student-count').textContent = count;
+        }
+
+        // ============================================================
+        // 38. Keyboard Shortcuts
+        // ============================================================
+        document.addEventListener('keydown', (e) => {
+            // Ctrl+1-5 to switch tabs
+            if (e.ctrlKey && e.key >= '1' && e.key <= '5') {
+                e.preventDefault();
+                const tabs = ['whiteboard', 'students', 'chat', 'media', 'settings'];
+                switchTab(tabs[parseInt(e.key) - 1]);
+            }
+            // Ctrl+B to toggle tab bar
+            if (e.ctrlKey && e.key === 'b') {
+                e.preventDefault();
+                toggleTabBar();
+            }
+            // Ctrl+Z to undo
+            if (e.ctrlKey && e.key === 'z') {
+                e.preventDefault();
+                undoDraw();
+            }
+            // Ctrl+Y to redo
+            if (e.ctrlKey && e.key === 'y') {
+                e.preventDefault();
+                redoDraw();
+            }
+            // Ctrl+S to save board
+            if (e.ctrlKey && e.key === 's') {
+                e.preventDefault();
+                saveBoard();
+            }
+            // Space to raise hand
+            if (e.key === ' ' && document.activeElement?.tagName !== 'INPUT' && document.activeElement?.tagName !==
+                'TEXTAREA') {
+                e.preventDefault();
+                raiseHand();
+            }
+        });
+
+        // ============================================================
+        // 39. Init
+        // ============================================================
+        console.log('🎓 A-Class Plus - Complete Virtual Classroom');
+        console.log('👨‍🏫 Teacher: teacher123');
+        console.log('👩‍🎓 Student: student123');
+        console.log('📊 Features: Whiteboard, Camera, Chat, Polls, Timer, Breakout Rooms, Screen Share, Virtual BG');
+        console.log('⌨️ Shortcuts: Ctrl+1-5 tabs, Ctrl+Z undo, Ctrl+Y redo, Ctrl+S save, Space raise hand');
+
+        // Add initial tips
+        setTimeout(() => {
+            addChatMessage({ role: 'system', text: '💡 Tip: Press Space to raise your hand!' });
+            addChatMessage({ role: 'system', text: '📐 Click "Math" button for symbols (Σ, ∫, √, π, etc.)' });
+            addChatMessage({ role: 'system', text: '📊 Teacher can create polls and timers' });
+            addChatMessage({ role: 'system', text: '🎨 Use Virtual BG to change classroom background' });
+        }, 1500);
+    </script>
+
+</body>
+</html>
