@@ -1,0 +1,23 @@
+{
+  "name": "a-class-plus",
+  "version": "2.0.0",
+  "description": "Complete Professional Virtual Classroom with 25+ features",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "socket.io": "^4.7.2"
+  },
+  "keywords": [
+    "virtual-classroom",
+    "education",
+    "video-conferencing",
+    "whiteboard",
+    "online-learning",
+    "collaboration"
+  ],
+  "author": "vinayd180-web",
+  "license": "MIT"
+}
